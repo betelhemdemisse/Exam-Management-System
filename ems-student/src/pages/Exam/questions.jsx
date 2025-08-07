@@ -201,8 +201,9 @@ export function Questions() {
   const currentQ = questions[currentQuestion - 1];
   const progressPercentage = (currentQuestion / questions.length) * 100;
 
-  return (  
+  return (
     <div className="h-screen bg-white flex flex-col">
+
       {/* Finish Confirmation Modal */}
       {showFinishConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -228,6 +229,7 @@ export function Questions() {
           </div>
         </div>
       )}
+
 
       {/* Success Modal */}
       {showSuccessModal && (
@@ -272,12 +274,22 @@ export function Questions() {
               <span>Question {currentQuestion} of {questions.length}</span>
               <span>{Math.round(progressPercentage)}% Complete</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div 
-                className="bg-blue-600 h-2.5 rounded-full" 
-                style={{ width: `${progressPercentage}%` }}
+
+            <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner relative overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500 ease-in-out"
+                style={{
+                  width: `${progressPercentage}%`,
+                  background: `linear-gradient(to right, #34d399, #3b82f6)`
+                }}
               ></div>
+              <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-700">
+                {Math.round(progressPercentage)}%
+              </span>
             </div>
+
+
+           
           </div>
         </div>
       </div>
@@ -291,19 +303,19 @@ export function Questions() {
               <h2 className="text-xl font-semibold mb-6 text-gray-800">
                 {currentQ.text}
               </h2>
-              
+
               <div className="space-y-3 mb-8">
                 {currentQ.options.map((option, index) => (
-                  <label 
+                  <label
                     key={index}
-                    htmlFor={`option${index}`} 
+                    htmlFor={`option${index}`}
                     className={`block p-4 rounded-lg cursor-pointer border-l-4 ${selectedOption === index ? 'border-l-blue-500 bg-blue-50 shadow-md' : 'border-l-transparent hover:border-l-blue-500 hover:shadow-md hover:bg-blue-50'} transition-all duration-200`}
                   >
                     <div className="flex items-start">
-                      <input 
-                        type="radio" 
-                        id={`option${index}`} 
-                        name="question" 
+                      <input
+                        type="radio"
+                        id={`option${index}`}
+                        name="question"
                         className="mt-0.5 mr-3"
                         checked={selectedOption === index}
                         onChange={() => handleOptionSelect(index)}
@@ -318,7 +330,7 @@ export function Questions() {
 
               {/* Navigation Buttons under question card */}
               <div className="flex justify-between">
-                <button 
+                <button
                   className={`px-6 py-2 border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50 shadow-sm ${currentQuestion === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                   onClick={handlePrevious}
                   disabled={currentQuestion === 1}
@@ -326,14 +338,14 @@ export function Questions() {
                   ← Previous
                 </button>
                 {currentQuestion < questions.length ? (
-                  <button 
+                  <button
                     className="px-6 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 shadow-md"
                     onClick={handleNext}
                   >
                     Next →
                   </button>
                 ) : (
-                  <button 
+                  <button
                     className="px-6 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 shadow-md"
                     onClick={handleFinishAttempt}
                   >
@@ -346,7 +358,8 @@ export function Questions() {
         </div>
 
         {/* Questions Sidebar - Right Side */}
-        <div className="w-64 p-4 border-l border-gray-200 overflow-y-auto">
+
+          <div className="w-64 p-4 border-l border-gray-200 overflow-y-auto bg-gray-50">
           <div className="mb-6 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg">
             <div className="text-white text-center">
               <p className="text-sm font-light mb-1">Time Remaining</p>
@@ -368,24 +381,41 @@ export function Questions() {
 
           {/* Questions Navigation */}
           <div className="mb-4">
-            <h3 className="font-semibold text-gray-700 mb-2">Questions</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {questions.map((q, index) => (
-                <button
-                  key={q.id}
-                  onClick={() => handleQuestionNavigation(index + 1)}
-                  className={`w-full h-12 flex items-center justify-center rounded-md border ${
-                    currentQuestion === index + 1
-                      ? 'bg-blue-100 border-blue-500 text-blue-700'
-                      : 'border-gray-300 hover:bg-gray-100'
-                  } transition-colors`}
-                >
-                  {index + 1}
-                </button>
-              ))}
+            <h3 className="font-semibold text-gray-700 mb-4 text-lg">Questions</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {questions.map((q, index) => {
+                const isCurrent = currentQuestion === index + 1;
+                const isAnswered =
+                  currentQuestion > index + 1 ||
+                  (currentQuestion === index + 1 && selectedOption !== null);
+
+                let baseClasses =
+                  "h-12 w-full flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
+
+                let statusClass = "";
+                if (isCurrent) {
+                  statusClass = "bg-blue-100 border-blue-500 text-blue-700 shadow-md";
+                } else if (isAnswered) {
+                  statusClass = "bg-green-100 border-green-400 text-green-700";
+                } else {
+                  statusClass = "bg-white border-gray-300 text-gray-600 hover:bg-gray-100";
+                }
+
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => handleQuestionNavigation(index + 1)}
+                    className={`${baseClasses} ${statusClass}`}
+                  >
+                    {index + 1}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
+
+
       </div>
     </div>
   );
