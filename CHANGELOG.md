@@ -29,10 +29,6 @@
 
 ## [1.0.0] 2021-06-08
 
-### Original Release
-
-- Started project from [Material Tailwind Dashboard React](https://www.creative-tim.com/product/material-tailwind-dashboard-react?ref=changelog-mtdr)
-- Updated all dependencies from [Material Tailwind Dashboard React](https://www.creative-tim.com/product/material-tailwind-dashboard-react?ref=changelog-mtdr) and those dependencies that were not working with the new React v17+ API, were deleted and/or replaced
 
 ### Warning
 

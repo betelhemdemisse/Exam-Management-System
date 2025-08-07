@@ -5,9 +5,10 @@ import {
   InformationCircleIcon,
   ServerStackIcon,
   RectangleStackIcon,
-  ClipboardDocumentIcon 
+  ClipboardDocumentIcon,
+  DocumentCheckIcon 
 } from "@heroicons/react/24/solid";
-import { Home, User, QuestionBank } from "@/pages/dashboard";
+import { Home, User, QuestionBank, Result } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 
 const icon = {
@@ -30,11 +31,17 @@ export const routes = [
         path: "/user",
         element: <User />,
       },
-       {
+      {
         icon: <ClipboardDocumentIcon {...icon} />,
         name: "Question Bank",
         path: "/question_bank",
         element: <QuestionBank />,
+      },
+      {
+        icon: <DocumentCheckIcon {...icon} />,
+        name: "Result",
+        path: "/result",
+        element: <Result />,
       },
     ],
   },
