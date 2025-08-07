@@ -131,49 +131,25 @@ export function Questions() {
 
   return (  
     <div className="h-screen bg-white flex flex-col">
-      <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
-        <div className="max-w-4xl flex-start">
-          <div className="flex-1 mr-4">
-            <div className="flex justify-between text-sm text-gray-600 mb-1">
-              <span>Question {currentQuestion} of {questions.length}</span>
-              <span>{Math.round(progressPercentage)}% Complete</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-full bg-gray-200 rounded-full h-2.5 mr-2">
-                <div 
-                  className="bg-blue-600 h-2.5 rounded-full" 
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
+     <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
+  <div className="w-full flex-start">
+    <div className="flex-1">
+      <div className="flex justify-between text-sm text-gray-600 mb-1">
+        <span>Question {currentQuestion} of {questions.length}</span>
+        <span>{Math.round(progressPercentage)}% Complete</span>
       </div>
+      <div className="w-full bg-gray-200 rounded-full h-2.5">
+        <div 
+          className="bg-blue-600 h-2.5 rounded-full" 
+          style={{ width: `${progressPercentage}%` }}
+        ></div>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Questions Sidebar */}
-        <div className="w-64 p-4 border-r border-gray-200 overflow-y-auto">
-          <div className="mb-4">
-            <h3 className="font-semibold text-gray-700 mb-2">Questions</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {questions.map((q, index) => (
-                <button
-                  key={q.id}
-                  onClick={() => handleQuestionNavigation(index + 1)}
-                  className={`w-full h-12 flex items-center justify-center rounded-md border ${
-                    currentQuestion === index + 1
-                      ? 'bg-blue-100 border-blue-500 text-blue-700'
-                      : 'border-gray-300 hover:bg-gray-100'
-                  } transition-colors`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Centered Question Area */}
         <div className="flex-1 overflow-auto p-4">
           <div className="max-w-2xl mx-auto">
@@ -231,6 +207,28 @@ export function Questions() {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Questions Sidebar - Right Side */}
+        <div className="w-64 p-4 border-l border-gray-200 overflow-y-auto">
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-700 mb-2">Questions</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {questions.map((q, index) => (
+                <button
+                  key={q.id}
+                  onClick={() => handleQuestionNavigation(index + 1)}
+                  className={`w-full h-12 flex items-center justify-center rounded-md border ${
+                    currentQuestion === index + 1
+                      ? 'bg-blue-100 border-blue-500 text-blue-700'
+                      : 'border-gray-300 hover:bg-gray-100'
+                  } transition-colors`}
+                >
+                  {index + 1}
+                </button>
+              ))}
             </div>
           </div>
         </div>
