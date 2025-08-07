@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
 export function Questions() {
@@ -8,7 +8,12 @@ export function Questions() {
   const [selectedOption, setSelectedOption] = useState(null);
   const [quizTime, setQuizTime] = useState(0); // in seconds
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [countDownTimer, setCountDownTimer] = useState(15 * 60); // 15 minutes in seconds
+
+  // Refs for timer intervals
+  const countdownTimerRef = useRef(null);
+  const quizTimerRef = useRef(null);
 
   const questions = [
     {
@@ -88,10 +93,10 @@ export function Questions() {
   useEffect(() => {
     if (!showContent) return;
 
-    const timer = setInterval(() => {
+    countdownTimerRef.current = setInterval(() => {
       setCountDownTimer((prev) => {
         if (prev <= 1) {
-          clearInterval(timer);
+          clearInterval(countdownTimerRef.current);
           handleFinishAttempt(); // Auto-submit when time runs out
           return 0;
         }
@@ -99,18 +104,26 @@ export function Questions() {
       });
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      if (countdownTimerRef.current) {
+        clearInterval(countdownTimerRef.current);
+      }
+    };
   }, [showContent]);
 
   // Quiz elapsed time counter
   useEffect(() => {
     if (!showContent) return;
 
-    const timer = setInterval(() => {
+    quizTimerRef.current = setInterval(() => {
       setQuizTime((prev) => prev + 1);
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      if (quizTimerRef.current) {
+        clearInterval(quizTimerRef.current);
+      }
+    };
   }, [showContent]);
 
   const handleNext = () => {
@@ -141,13 +154,20 @@ export function Questions() {
   };
 
   const confirmFinish = () => {
+    // Clear both timers when exam is finished
+    clearInterval(countdownTimerRef.current);
+    clearInterval(quizTimerRef.current);
+    
     setShowFinishConfirmation(false);
-    alert('Quiz completed!');
-    // Here you would typically navigate to results or another page
+    setShowSuccessModal(true);
   };
 
   const cancelFinish = () => {
     setShowFinishConfirmation(false);
+  };
+
+  const handleContinue = () => {
+    setShowSuccessModal(false);
   };
 
   // Format the countdown to always show 2 digits (e.g., "05" instead of "5")
@@ -204,6 +224,42 @@ export function Questions() {
               >
                 Yes, Finish Now
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-8 max-w-lg w-full shadow-2xl transform transition-all">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+                <svg className="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Exam Submitted Successfully!</h3>
+              <div className="mb-6">
+                <p className="text-gray-600 mb-2">Congratulations on completing your exam.</p>
+                <p className="text-gray-500 text-sm">Time taken: {formatTime(quizTime)}</p>
+                <p className="text-gray-500 text-sm">Your results will be available soon.</p>
+              </div>
+              <div className="flex flex-col space-y-3">
+                <button
+                  onClick={handleContinue}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition-all"
+                >
+                  View Results
+                </button>
+                <Link to="/sign-in">
+                  <button
+                    className="w-full px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all"
+                  >
+                    Logout
+                  </button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
