@@ -18,17 +18,21 @@ export function User() {
   const [users, setUsers] = useState([
     {
       fullName: "John Doe",
+      Gender: "Mail",
       email: "john.doe@email.com",
       campaign: "Summer Promo",
       position: "Marketing Lead",
       type: "Experienced",
+      Region: "oromia"
     },
     {
       fullName: "Jane Smith",
+      Gender: "Mail",
       email: "jane.smith@email.com",
       campaign: "Winter Campaign",
       position: "Sales Manager",
       type: "Junior",
+      Region: "oromia"
     },
   ]);
 
@@ -44,17 +48,21 @@ export function User() {
     const importedUsers = [
       {
         fullName: "Alice Johnson",
+        Gender: "Mail",
         email: "alice.johnson@email.com",
         campaign: "Spring Drive",
         position: "Content Strategist",
         type: "Junior",
+        Region: "oromia"
       },
       {
         fullName: "Bob Williams",
+        Gender: "Mail",
         email: "bob.williams@email.com",
         campaign: "Fall Launch",
         position: "Product Manager",
         type: "Experienced",
+        Region: "oromia"
       },
     ];
 
@@ -96,7 +104,7 @@ export function User() {
           <table className="w-full min-w-[700px] text-left">
             <thead>
               <tr className="bg-blue-gray-50">
-                {["NO", "Full Name", "Campaign", "Position", "Type", ""].map(
+                {["NO", "Full Name", "Email", "Gender", "Campaign", "Position", "Type", "Region", "Actions"].map(
                   (header) => (
                     <th key={header} className="p-4">
                       <Typography
@@ -112,10 +120,7 @@ export function User() {
             </thead>
             <tbody>
               {users.map((user, index) => (
-                <tr
-                  key={index}
-                  className="hover:bg-blue-gray-50 transition-colors"
-                >
+                <tr key={index} className="hover:bg-blue-gray-50 transition-colors">
                   <td className="p-4">
                     <Typography className="text-sm text-blue-gray-700 font-medium">
                       {index + 1}
@@ -125,8 +130,15 @@ export function User() {
                     <Typography className="text-sm font-semibold text-blue-gray-800">
                       {user.fullName}
                     </Typography>
-                    <Typography className="text-xs text-blue-gray-500">
+                  </td>
+                  <td className="p-4">
+                    <Typography className="text-sm text-blue-gray-700">
                       {user.email}
+                    </Typography>
+                  </td>
+                  <td className="p-4">
+                    <Typography className="text-sm text-blue-gray-700">
+                      {user.Gender}
                     </Typography>
                   </td>
                   <td className="p-4">
@@ -145,6 +157,11 @@ export function User() {
                     </Typography>
                   </td>
                   <td className="p-4">
+                    <Typography className="text-sm text-blue-gray-700">
+                      {user.Region}
+                    </Typography>
+                  </td>
+                  <td className="p-4">
                     <Tooltip content="Options">
                       <EllipsisVerticalIcon className="h-5 w-5 text-blue-gray-400 cursor-pointer" />
                     </Tooltip>
@@ -152,6 +169,7 @@ export function User() {
                 </tr>
               ))}
             </tbody>
+
           </table>
         </CardBody>
       </Card>
@@ -164,7 +182,7 @@ export function User() {
             {newUsers.map((user, idx) => (
               <li key={idx}>
                 <strong>{user.fullName}</strong> – {user.email} –{" "}
-                {user.campaign} – {user.position} – {user.type}
+                {user.Gender} – {user.campaign} – {user.position} – {user.type} – {user.Region}
               </li>
             ))}
           </ul>
