@@ -25,30 +25,36 @@ import {
   setOpenConfigurator,
   setOpenSidenav,
 } from "@/context";
-
+import { useNavigate } from "react-router-dom";
 export function DashboardNavbar() {
   const [controller, dispatch] = useMaterialTailwindController();
   const { fixedNavbar, openSidenav } = controller;
   const { pathname } = useLocation();
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    sessionStorage.clear();           
+
+    navigate("/sign-in");
+  };
 
   return (
     <Navbar
       color={fixedNavbar ? "white" : "transparent"}
-      className={`rounded-xl transition-all ${
-        fixedNavbar
-          ? "sticky top-4 z-40 py-3 shadow-md shadow-blue-gray-500/5"
-          : "px-0 py-1"
-      }`}
+      className={`rounded-xl transition-all ${fixedNavbar
+        ? "sticky top-4 z-40 py-3 shadow-md shadow-blue-gray-500/5"
+        : "px-0 py-1"
+        }`}
       fullWidth
       blurred={fixedNavbar}
     >
       <div className="flex flex-col-reverse justify-between gap-6 md:flex-row md:items-center">
         <div className="capitalize">
           <Breadcrumbs
-            className={`bg-transparent p-0 transition-all ${
-              fixedNavbar ? "mt-1" : ""
-            }`}
+            className={`bg-transparent p-0 transition-all ${fixedNavbar ? "mt-1" : ""
+              }`}
           >
             <Link to={`/${layout}`}>
               <Typography
@@ -90,7 +96,7 @@ export function DashboardNavbar() {
               className="hidden items-center gap-1 px-4 xl:flex normal-case"
             >
               <UserCircleIcon className="h-5 w-5 text-blue-gray-500" />
-              Sign In
+              Log out
             </Button>
             <IconButton
               variant="text"
@@ -178,13 +184,35 @@ export function DashboardNavbar() {
               </MenuItem>
             </MenuList>
           </Menu>
-          <IconButton
-            variant="text"
-            color="blue-gray"
-            onClick={() => setOpenConfigurator(dispatch, true)}
-          >
-            <Cog6ToothIcon className="h-5 w-5 text-blue-gray-500" />
-          </IconButton>
+          <Menu placement="bottom-end">
+            <MenuHandler>
+              <IconButton variant="text" color="blue-gray">
+                <Cog6ToothIcon className="h-5 w-5 text-blue-gray-500" />
+              </IconButton>
+            </MenuHandler>
+            <MenuList>
+              <MenuItem>
+                <Link to="/profile-update" className="w-full">
+                  <Typography variant="small" color="blue-gray" className="font-medium">
+                    Update Profile
+                  </Typography>
+                </Link>
+              </MenuItem>
+              <MenuItem>
+                <Link to="/change-password" className="w-full">
+                  <Typography variant="small" color="blue-gray" className="font-medium">
+                    Change Password
+                  </Typography>
+                </Link>
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>
+                <Typography variant="small" color="red" className="font-medium">
+                  Log Out
+                </Typography>
+              </MenuItem>
+            </MenuList>
+          </Menu>
+
         </div>
       </div>
     </Navbar>
