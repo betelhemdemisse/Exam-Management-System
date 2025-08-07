@@ -46,11 +46,11 @@ export function SignIn() {
           }}
         />
       </div>
-     
-      <Button className="mt-6" fullWidth>
-        Sign In
+     <Link to="/dashboard/home" >  
+      <Button className="mt-6 " fullWidth >
+       Sign In 
       </Button>
-
+</Link>
       <div className="flex items-center justify-between gap-2 mt-6">
         <Typography variant="small" className="font-medium text-gray-900">
           <a href="#">

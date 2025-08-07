@@ -10,7 +10,8 @@ import {
 } from "@heroicons/react/24/solid";
 import { Home, User, QuestionBank, Result } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
-
+import { ExamLanding } from "./pages/Exam";
+import { Questions } from "./pages/Exam";
 const icon = {
   className: "w-5 h-5 text-inherit",
 };
@@ -56,6 +57,19 @@ export const routes = [
         path: "/sign-up",
         element: <SignUp />,
       },
+    ],
+  },
+  {
+    layout: "exam",
+    pages: [
+      {
+        path: "",
+        element: <ExamLanding />,
+      },
+      {
+        path:"/questions",
+        element:<Questions />
+      }
     ],
   },
 ];
