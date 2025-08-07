@@ -244,16 +244,9 @@ export function Questions() {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Exam Submitted Successfully!</h3>
               <div className="mb-6">
                 <p className="text-gray-600 mb-2">Congratulations on completing your exam.</p>
-                <p className="text-gray-500 text-sm">Time taken: {formatTime(quizTime)}</p>
-                <p className="text-gray-500 text-sm">Your results will be available soon.</p>
+                
               </div>
               <div className="flex flex-col space-y-3">
-                <button
-                  onClick={handleContinue}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition-all"
-                >
-                  View Results
-                </button>
                 <Link to="/sign-in">
                   <button
                     className="w-full px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all"
