@@ -1,11 +1,4 @@
 import { useState, useEffect } from "react";
-import {
-  Card,
-  Input,
-  Checkbox,
-  Button,
-  Typography,
-} from "@material-tailwind/react";
 import { Link } from "react-router-dom";
 
 export function Questions() {
@@ -13,6 +6,9 @@ export function Questions() {
   const [countdown, setCountdown] = useState(5);
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [quizTime, setQuizTime] = useState(0); // in seconds
+  const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
+  const [countDownTimer, setCountDownTimer] = useState(15 * 60); // 15 minutes in seconds
 
   const questions = [
     {
@@ -72,6 +68,7 @@ export function Questions() {
     }
   ];
 
+  // Countdown timer before quiz starts
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -86,6 +83,35 @@ export function Questions() {
 
     return () => clearInterval(timer);
   }, []);
+
+  // Quiz countdown timer (15 minutes)
+  useEffect(() => {
+    if (!showContent) return;
+
+    const timer = setInterval(() => {
+      setCountDownTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleFinishAttempt(); // Auto-submit when time runs out
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [showContent]);
+
+  // Quiz elapsed time counter
+  useEffect(() => {
+    if (!showContent) return;
+
+    const timer = setInterval(() => {
+      setQuizTime((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [showContent]);
 
   const handleNext = () => {
     if (currentQuestion < questions.length) {
@@ -110,6 +136,32 @@ export function Questions() {
     setSelectedOption(null);
   };
 
+  const handleFinishAttempt = () => {
+    setShowFinishConfirmation(true);
+  };
+
+  const confirmFinish = () => {
+    setShowFinishConfirmation(false);
+    alert('Quiz completed!');
+    // Here you would typically navigate to results or another page
+  };
+
+  const cancelFinish = () => {
+    setShowFinishConfirmation(false);
+  };
+
+  // Format the countdown to always show 2 digits (e.g., "05" instead of "5")
+  const formatCountdown = (time) => {
+    return time < 10 ? `0${time}` : time.toString();
+  };
+
+  // Format time as MM:SS
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   if (!showContent) {
     return (
       <div className="h-screen flex items-center justify-center bg-white">
@@ -131,6 +183,34 @@ export function Questions() {
 
   return (
     <div className="h-screen bg-white flex flex-col">
+
+      {/* Finish Confirmation Modal */}
+      {showFinishConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-xl font-semibold mb-4">Are you sure you want to finish?</h3>
+            <p className="text-gray-600 mb-6">
+              You still have time remaining. Make sure you've reviewed all your answers before submitting.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button 
+                onClick={cancelFinish}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Review Again
+              </button>
+              <button 
+                onClick={confirmFinish}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+              >
+                Yes, Finish Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
         <div className="w-full flex-start">
           <div className="flex-1">
@@ -138,6 +218,7 @@ export function Questions() {
               <span>Question {currentQuestion} of {questions.length}</span>
               <span>{Math.round(progressPercentage)}% Complete</span>
             </div>
+
             <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner relative overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500 ease-in-out"
@@ -151,6 +232,8 @@ export function Questions() {
               </span>
             </div>
 
+
+           
           </div>
         </div>
       </div>
@@ -208,7 +291,7 @@ export function Questions() {
                 ) : (
                   <button
                     className="px-6 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 shadow-md"
-                    onClick={() => alert('Quiz completed!')}
+                    onClick={handleFinishAttempt}
                   >
                     Finish
                   </button>
@@ -219,7 +302,28 @@ export function Questions() {
         </div>
 
         {/* Questions Sidebar - Right Side */}
-        <div className="w-64 p-4 border-l border-gray-200 overflow-y-auto bg-gray-50">
+
+          <div className="w-64 p-4 border-l border-gray-200 overflow-y-auto bg-gray-50">
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg">
+            <div className="text-white text-center">
+              <p className="text-sm font-light mb-1">Time Remaining</p>
+              <div className="flex justify-center items-baseline">
+                <span className="text-3xl font-bold tracking-tight">
+                  {formatTime(countDownTimer).split(':')[0]}
+                </span>
+                <span className="text-xl mx-1">:</span>
+                <span className="text-3xl font-bold tracking-tight">
+                  {formatTime(countDownTimer).split(':')[1]}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs mt-2 opacity-80">
+                <span>MIN</span>
+                <span>SEC</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Questions Navigation */}
           <div className="mb-4">
             <h3 className="font-semibold text-gray-700 mb-4 text-lg">Questions</h3>
             <div className="grid grid-cols-3 gap-3">
