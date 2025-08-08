@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+
 import PreventInspection from "./securityMeasure/preventInspection"
+
+import { Link, useNavigate } from "react-router-dom";
+
 
 export function Questions() {
   const [showContent, setShowContent] = useState(false);
@@ -11,6 +14,8 @@ export function Questions() {
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [countDownTimer, setCountDownTimer] = useState(15 * 60); // 15 minutes in seconds
+  const navigate = useNavigate();
+  const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
 
   // Refs for timer intervals
   const countdownTimerRef = useRef(null);
@@ -127,6 +132,41 @@ export function Questions() {
     };
   }, [showContent]);
 
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        // User exited fullscreen
+        setShowFullscreenWarning(true);
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const handleContinueExam = () => {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen();
+    } else if (elem.mozRequestFullScreen) {
+      elem.mozRequestFullScreen();
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+      elem.msRequestFullscreen();
+    }
+    setShowFullscreenWarning(false);
+  };
+
+
+  const handleExitExam = () => {
+    clearInterval(countdownTimerRef.current);
+    clearInterval(quizTimerRef.current);
+    navigate("/sign-in");
+  };
+
   const handleNext = () => {
     if (currentQuestion < questions.length) {
       setCurrentQuestion(currentQuestion + 1);
@@ -158,7 +198,7 @@ export function Questions() {
     // Clear both timers when exam is finished
     clearInterval(countdownTimerRef.current);
     clearInterval(quizTimerRef.current);
-    
+
     setShowFinishConfirmation(false);
     setShowSuccessModal(true);
   };
@@ -208,6 +248,32 @@ export function Questions() {
     <PreventInspection>
     <div className="h-screen bg-white flex flex-col">
 
+      {/* ✅ Fullscreen Warning Modal */}
+      {showFullscreenWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-xl font-semibold mb-4">Fullscreen Required</h3>
+            <p className="text-gray-600 mb-6">
+              You have exited fullscreen mode. Please return to fullscreen to continue your exam.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleExitExam}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+              >
+                Exit Exam
+              </button>
+              <button
+                onClick={handleContinueExam}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Finish Confirmation Modal */}
       {showFinishConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -217,13 +283,13 @@ export function Questions() {
               You still have time remaining. Make sure you've reviewed all your answers before submitting.
             </p>
             <div className="flex justify-end space-x-3">
-              <button 
+              <button
                 onClick={cancelFinish}
                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
                 Review Again
               </button>
-              <button 
+              <button
                 onClick={confirmFinish}
                 className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
               >
@@ -248,7 +314,7 @@ export function Questions() {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Exam Submitted Successfully!</h3>
               <div className="mb-6">
                 <p className="text-gray-600 mb-2">Congratulations on completing your exam.</p>
-                
+
               </div>
               <div className="flex flex-col space-y-3">
                 <Link to="/sign-in">
@@ -286,7 +352,7 @@ export function Questions() {
             </div>
 
 
-           
+
           </div>
         </div>
       </div>
@@ -356,7 +422,7 @@ export function Questions() {
 
         {/* Questions Sidebar - Right Side */}
 
-          <div className="w-64 p-4 border-l border-gray-200 overflow-y-auto bg-gray-50">
+        <div className="w-64 p-4 border-l border-gray-200 overflow-y-auto bg-gray-50">
           <div className="mb-6 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg">
             <div className="text-white text-center">
               <p className="text-sm font-light mb-1">Time Remaining</p>
