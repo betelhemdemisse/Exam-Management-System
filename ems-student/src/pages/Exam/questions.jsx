@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import PreventInspection from "./securityMeasure/preventInspection"
 
 export function Questions() {
   const [showContent, setShowContent] = useState(false);
@@ -184,6 +185,7 @@ export function Questions() {
 
   if (!showContent) {
     return (
+      <PreventInspection>
       <div className="h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">Get Ready!</h1>
@@ -195,6 +197,7 @@ export function Questions() {
           </div>
         </div>
       </div>
+      </PreventInspection>
     );
   }
 
@@ -202,6 +205,7 @@ export function Questions() {
   const progressPercentage = (currentQuestion / questions.length) * 100;
 
   return (
+    <PreventInspection>
     <div className="h-screen bg-white flex flex-col">
 
       {/* Finish Confirmation Modal */}
@@ -411,6 +415,7 @@ export function Questions() {
 
       </div>
     </div>
+    </PreventInspection>
   );
 }
 

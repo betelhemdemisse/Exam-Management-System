@@ -7,9 +7,10 @@ import {
 } from "@material-tailwind/react";
 import { Link } from "react-router-dom";
 
-
+import PreventInspection from "./securityMeasure/preventInspection"
 export function ExamLanding() {
     return(  
+      <PreventInspection>
 <div className="h-screen bg-white-50 p-8 flex  overflow-hidden">
   <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] flex ">
     <div className="w-1/4 bg-grey borde r-r p-4 flex flex-col rounded-lg">
@@ -91,6 +92,7 @@ export function ExamLanding() {
     </div>
   </div>
 </div>
+</PreventInspection>
 )
 }
 export default ExamLanding;
