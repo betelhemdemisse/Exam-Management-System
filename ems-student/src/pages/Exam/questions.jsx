@@ -16,7 +16,7 @@ export function Questions() {
   const [countDownTimer, setCountDownTimer] = useState(15 * 60); // 15 minutes in seconds
   const navigate = useNavigate();
   const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
-
+const [answeredQuestions, setAnsweredQuestions] = useState([]);
   // Refs for timer intervals
   const countdownTimerRef = useRef(null);
   const quizTimerRef = useRef(null);
@@ -167,12 +167,16 @@ export function Questions() {
     navigate("/sign-in");
   };
 
-  const handleNext = () => {
-    if (currentQuestion < questions.length) {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedOption(null);
-    }
-  };
+const handleNext = () => {
+  if (currentQuestion < questions.length && selectedOption === null && !answeredQuestions.includes(currentQuestion)) {
+  }
+  
+  if (currentQuestion < questions.length) {
+    setCurrentQuestion(currentQuestion + 1);
+    setSelectedOption(null);
+  }
+};
+
 
   const handlePrevious = () => {
     if (currentQuestion > 1) {
@@ -180,20 +184,28 @@ export function Questions() {
       setSelectedOption(null);
     }
   };
-
-  const handleOptionSelect = (optionIndex) => {
-    setSelectedOption(optionIndex);
-  };
-
+const handleOptionSelect = (optionIndex) => {
+  setSelectedOption(optionIndex);
+  // Mark current question as answered
+  if (!answeredQuestions.includes(currentQuestion)) {
+    setAnsweredQuestions([...answeredQuestions, currentQuestion]);
+  }
+};
   const handleQuestionNavigation = (questionNumber) => {
     setCurrentQuestion(questionNumber);
     setSelectedOption(null);
   };
 
-  const handleFinishAttempt = () => {
+const handleFinishAttempt = () => {
+  const unansweredCount = questions.length - answeredQuestions.length;
+  if (unansweredCount > 0) {
+    if (window.confirm(`You have ${unansweredCount} unanswered questions. Are you sure you want to finish?`)) {
+      setShowFinishConfirmation(true);
+    }
+  } else {
     setShowFinishConfirmation(true);
-  };
-
+  }
+};
   const confirmFinish = () => {
     // Clear both timers when exam is finished
     clearInterval(countdownTimerRef.current);
@@ -330,44 +342,50 @@ export function Questions() {
         </div>
       )}
 
-      <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
-        <div className="w-full flex-start">
-          <div className="flex-1">
-            <div className="flex justify-between text-sm text-gray-600 mb-1">
-              <span>Question {currentQuestion} of {questions.length}</span>
-              <span>{Math.round(progressPercentage)}% Complete</span>
-            </div>
-
-            <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner relative overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500 ease-in-out"
-                style={{
-                  width: `${progressPercentage}%`,
-                  background: `linear-gradient(to right, #34d399, #3b82f6)`
-                }}
-              ></div>
-              <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-700">
-                {Math.round(progressPercentage)}%
-              </span>
-            </div>
-
-
-
-          </div>
-        </div>
+     <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
+<div className="bg-white shadow-sm p-4 sticky top-0 z-10">
+  <div className="w-full flex justify-between items-start">
+    {/* Left side - Progress bar section */}
+    <div className="flex-1 max-w-6xl">
+      <div className="flex justify-between text-sm text-gray-600 mb-1">
+        <span>Question {currentQuestion} of {questions.length}</span>
+        <span>{Math.round(progressPercentage)}% Complete</span>
       </div>
 
-      {/* Main Content Area */}
+      <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner relative overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500 ease-in-out"
+          style={{
+            width: `${progressPercentage}%`,
+            background: `linear-gradient(to right, #34d399, #3b82f6)`
+          }}
+        ></div>
+        <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-700">
+          {Math.round(progressPercentage)}%
+        </span>
+      </div>
+    </div>
+
+<div className="ml-4 flex-shrink-0 flex items-center">
+  <span className="text-xl font-semibold text-gray-900 tracking-wide">
+    <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+      Johnathan D. Smith
+    </span>
+  </span>
+</div>
+  </div>
+</div>
+</div>
+
       <div className="flex-1 flex overflow-hidden">
-        {/* Centered Question Area */}
-        <div className="flex-1 overflow-auto p-4">
+        <div className="flex-1 overflow-auto p-4 mt-24">
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-lg shadow-lg p-8">
               <h2 className="text-xl font-semibold mb-6 text-gray-800">
                 {currentQ.text}
               </h2>
 
-              <div className="space-y-3 mb-8">
+              <div className="space-y-3">
                 {currentQ.options.map((option, index) => (
                   <label
                     key={index}
@@ -445,36 +463,39 @@ export function Questions() {
           {/* Questions Navigation */}
           <div className="mb-4">
             <h3 className="font-semibold text-gray-700 mb-4 text-lg">Questions</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {questions.map((q, index) => {
-                const isCurrent = currentQuestion === index + 1;
-                const isAnswered =
-                  currentQuestion > index + 1 ||
-                  (currentQuestion === index + 1 && selectedOption !== null);
+          <div className="grid grid-cols-3 gap-3">
+  {questions.map((q, index) => {
+    const isCurrent = currentQuestion === index + 1;
+    const isAnswered = answeredQuestions.includes(index + 1);
+    const isSkipped = !isAnswered && currentQuestion > index + 1; 
 
-                let baseClasses =
-                  "h-12 w-full flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
+    let baseClasses = "h-12 w-full flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
 
-                let statusClass = "";
-                if (isCurrent) {
-                  statusClass = "bg-blue-100 border-blue-500 text-blue-700 shadow-md";
-                } else if (isAnswered) {
-                  statusClass = "bg-green-100 border-green-400 text-green-700";
-                } else {
-                  statusClass = "bg-white border-gray-300 text-gray-600 hover:bg-gray-100";
-                }
+    let statusClass = "";
+    if (isCurrent) {
+      statusClass = "bg-blue-100 border-blue-500 text-blue-700 shadow-md";
+    } else if (isAnswered) {
+      statusClass = "bg-green-100 border-green-400 text-green-700";
+    } else if (isSkipped) {
+      statusClass = "bg-red-100 border-yellow-400 text-yellow-700"; // V
+    } else {
+      statusClass = "bg-white border-gray-300 text-gray-600 hover:bg-gray-100";
+    }
 
-                return (
-                  <button
-                    key={q.id}
-                    onClick={() => handleQuestionNavigation(index + 1)}
-                    className={`${baseClasses} ${statusClass}`}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              })}
-            </div>
+    return (
+      <button
+        key={q.id}
+        onClick={() => handleQuestionNavigation(index + 1)}
+        className={`${baseClasses} ${statusClass}`}
+      >
+        {index + 1}
+        {isSkipped && (
+          <span className="ml-1 text-yellow-600">!</span> // Add an exclamation mark for skipped questions
+        )}
+      </button>
+    );
+  })}
+</div>
           </div>
         </div>
 

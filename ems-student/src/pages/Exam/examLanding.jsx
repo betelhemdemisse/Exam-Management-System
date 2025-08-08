@@ -98,12 +98,12 @@ export function ExamLanding() {
               </div>
               <div className="mt-4 pt-3 border-t border-gray-200">
                 <div className="flex justify-end">
-                  <button
-                    onClick={handleBeginExam}
-                    className="bg-green-100 hover:bg-green-200 text-green font-medium py-2 px-6 rounded-lg text-sm transition-colors"
-                  >
-                    Begin Exam
-                  </button>
+                 <button
+  onClick={handleBeginExam}
+  className="bg-green-100 hover:bg-green-200 text-green-1000 font-medium py-4 px-10 rounded-xl text-lg transition-colors"
+>
+  Begin Exam →
+</button>
                 </div>
               </div>
             </div>
