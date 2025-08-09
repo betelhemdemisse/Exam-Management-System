@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
     Card,
     CardBody,
@@ -11,27 +11,13 @@ import {
 } from "@material-tailwind/react";
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import * as XLSX from "xlsx";
+import QuestionService from "../../service/question.service";
 
 export function QuestionBank() {
     const fileInputRef = useRef(null);
-
-    const [questions, setQuestions] = useState([
-        {
-            question: "What is the capital of France?",
-            options: ["Berlin", "Madrid", "Paris", "Rome"],
-            answer: "Paris",
-            question_type: "Junior",
-        },
-        {
-            question: "Which planet is known as the Red Planet?",
-            options: ["Earth", "Mars", "Jupiter", "Venus"],
-            answer: "Mars",
-            question_type: "Experienced",
-        },
-    ]);
-
     const [openIndex, setOpenIndex] = useState(null);
-    const [newQuestions, setNewQuestions] = useState([]);
+    const [questions, setQuestions] = useState([]); // main question list
+    const [newQuestions, setNewQuestions] = useState([]); // import preview
     const [showDialog, setShowDialog] = useState(false);
 
     const toggleDropdown = (index) => {
@@ -39,39 +25,82 @@ export function QuestionBank() {
     };
 
     const handleImportClick = () => {
-        fileInputRef.current.click(); // simulate file input
+        fileInputRef.current.click();
     };
 
-    const handleFileChange = (event) => {
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            try {
+                const data = await QuestionService.getQuestions();
+                console.log("Fetched questions:", data);
+                const processedQuestions = data.map(q => {
+                    const correctLabels = q.correctAnswers
+                        ?.map(ans => {
+                            const matchedChoice = q.choices.find(c => c.choiceID === ans.choiceID);
+                            return matchedChoice ? matchedChoice.label : null;
+                        })
+                        .filter(Boolean); // remove nulls
+
+                    return {
+                        ...q,
+                        correct_choice_labels: correctLabels.join(", ")
+                    };
+                });
+
+                setQuestions(processedQuestions);
+            } catch (error) {
+                console.error("Failed to fetch questions:", error);
+            }
+        };
+        fetchQuestions();
+    }, []);
+
+    const [importFile, setImportFile] = useState(null); // store file
+
+    const handleFileChange = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
+        setImportFile(file); // store file for later upload
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: "array" });
-            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        try {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = e.target.result;
+                const workbook = XLSX.read(data, { type: "binary" });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-            // Optional: validate required fields like question, options, etc.
-            const parsedQuestions = jsonData.map((row) => ({
-                question: row.question,
-                options: [row.optionA, row.optionB, row.optionC, row.optionD], // Adjust column names
-                answer: row.answer,
-                question_type: row.question_type,
-            }));
+                const parsedQuestions = jsonData.map((row) => ({
+                    question_text: row.question_text,
+                    question_type: row.question_type,
+                    category: row.category,
+                    difficulty: row.difficulty,
+                    choices: JSON.parse(row.choices),
+                    correct_choice_labels: row.correct_choice_labels
+                }));
 
-            setNewQuestions(parsedQuestions);
-            setShowDialog(true);
-        };
+                setNewQuestions(parsedQuestions);
+                setShowDialog(true);
+            };
 
-        reader.readAsArrayBuffer(file);
+            reader.readAsBinaryString(file);
+        } catch (error) {
+            console.error("Failed to import questions:", error);
+        }
     };
 
-    const handleConfirmImport = () => {
-        setQuestions((prev) => [...prev, ...newQuestions]);
-        setNewQuestions([]);
-        setShowDialog(false);
+    const handleConfirmImport = async () => {
+        try {
+            if (importFile) {
+                await QuestionService.importQuestions(importFile); // send file to backend
+            }
+            setQuestions((prev) => [...prev, ...newQuestions]);
+            setNewQuestions([]);
+            setImportFile(null);
+            setShowDialog(false);
+        } catch (error) {
+            console.error("Failed to save imported questions:", error);
+        }
     };
 
     const handleCancelImport = () => {
@@ -84,6 +113,7 @@ export function QuestionBank() {
             {/* Hidden file input */}
             <input
                 type="file"
+                accept=".csv"
                 ref={fileInputRef}
                 className="hidden"
                 onChange={handleFileChange}
@@ -96,6 +126,7 @@ export function QuestionBank() {
                 </Button>
             </div>
 
+            {/* Questions table */}
             <Card shadow={false} className="border border-blue-gray-100">
                 <CardBody className="overflow-x-auto px-4 py-4">
                     <table className="w-full min-w-[700px] text-left">
@@ -124,7 +155,7 @@ export function QuestionBank() {
                                         </td>
                                         <td className="p-4 align-top">
                                             <Typography className="text-sm font-semibold text-blue-gray-800">
-                                                {q.question}
+                                                {q.question_text}
                                             </Typography>
                                         </td>
                                         <td className="p-4 align-top">
@@ -141,11 +172,13 @@ export function QuestionBank() {
                                             >
                                                 {openIndex === index ? (
                                                     <>
-                                                        Hide Options <ChevronUpIcon className="w-4 h-4" />
+                                                        Hide Options{" "}
+                                                        <ChevronUpIcon className="w-4 h-4" />
                                                     </>
                                                 ) : (
                                                     <>
-                                                        Show Options <ChevronDownIcon className="w-4 h-4" />
+                                                        Show Options{" "}
+                                                        <ChevronDownIcon className="w-4 h-4" />
                                                     </>
                                                 )}
                                             </Button>
@@ -160,18 +193,19 @@ export function QuestionBank() {
                                                         Options:
                                                     </Typography>
                                                     <ul className="list-none ml-2 space-y-1 text-sm text-blue-gray-800">
-                                                        {q.options.map((opt, i) => (
+                                                        {q.choices.map((opt, i) => (
                                                             <li key={i}>
                                                                 <span className="font-bold mr-1">
-                                                                    {String.fromCharCode(65 + i)}.
+                                                                    {opt.label}.
                                                                 </span>
-                                                                {opt}
+                                                                {opt.choice_text}
                                                             </li>
                                                         ))}
                                                     </ul>
                                                     <Typography className="text-sm font-medium text-green-600">
-                                                        Answer: {q.answer}
+                                                        Answer: {q.correct_choice_labels}
                                                     </Typography>
+
                                                 </div>
                                             </td>
                                         </tr>
@@ -190,17 +224,17 @@ export function QuestionBank() {
                     {newQuestions.map((q, i) => (
                         <div key={i} className="mb-4 border-b pb-2">
                             <Typography className="font-semibold text-blue-gray-800">
-                                {i + 1}. {q.question}
+                                {i + 1}. {q.question_text}
                             </Typography>
                             <ul className="ml-4 mt-1 text-sm list-disc text-blue-gray-700">
-                                {q.options.map((opt, j) => (
+                                {q.choices.map((opt, j) => (
                                     <li key={j}>
-                                        <strong>{String.fromCharCode(65 + j)}.</strong> {opt}
+                                        <strong>{opt.label}.</strong> {opt.choice_text}
                                     </li>
                                 ))}
                             </ul>
                             <Typography className="text-sm text-green-600 mt-1">
-                                Answer: {q.answer}
+                                Answer: {q.correct_choice_labels}
                             </Typography>
                             <Typography className="text-sm text-blue-gray-500">
                                 Type: {q.question_type}
