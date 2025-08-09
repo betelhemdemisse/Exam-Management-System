@@ -199,7 +199,7 @@ export function DashboardNavbar() {
                 </Link>
               </MenuItem>
               <MenuItem>
-                <Link to="/change-password" className="w-full">
+                <Link to="/dashboard/change-password" className="w-full">
                   <Typography variant="small" color="blue-gray" className="font-medium">
                     Change Password
                   </Typography>

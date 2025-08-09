@@ -15,7 +15,6 @@ export function ExamLanding() {
       elem.msRequestFullscreen();
     }
 
-    // Navigate after entering fullscreen
     navigate("/exam/questions");
   };
 

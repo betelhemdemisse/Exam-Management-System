@@ -8,7 +8,7 @@ import {
   ClipboardDocumentIcon,
   DocumentCheckIcon 
 } from "@heroicons/react/24/solid";
-import { Home, User, QuestionBank, Result } from "@/pages/dashboard";
+import { Home, User, QuestionBank, Result, ChangePassword } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 import { ExamLanding } from "./pages/Exam";
 import { Questions } from "./pages/Exam";
@@ -60,6 +60,15 @@ export const routes = [
          </ProtectedRoute>
         )
       },
+       {
+        path: "/change-password",
+        element: (
+         <ProtectedRoute>
+           <ChangePassword />
+         </ProtectedRoute>
+        )
+      },
+      
     ],
   },
   {
