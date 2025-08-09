@@ -12,6 +12,7 @@ import { Home, User, QuestionBank, Result } from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 import { ExamLanding } from "./pages/Exam";
 import { Questions } from "./pages/Exam";
+import ProtectedRoute from './ProtectedRoute';
 const icon = {
   className: "w-5 h-5 text-inherit",
 };
@@ -24,25 +25,40 @@ export const routes = [
         icon: <HomeIcon {...icon} />,
         name: "dashboard",
         path: "/home",
-        element: <Home />,
+        element:(
+         <ProtectedRoute>
+           <Home />
+        </ProtectedRoute>) 
+
       },
       {
         icon: <TableCellsIcon {...icon} />,
         name: "User",
         path: "/user",
-        element: <User />,
+        element:( 
+         <ProtectedRoute>
+          <User />
+        </ProtectedRoute>) 
       },
       {
         icon: <ClipboardDocumentIcon {...icon} />,
         name: "Question Bank",
         path: "/question_bank",
-        element: <QuestionBank />,
+        element: ( 
+         <ProtectedRoute>
+            <QuestionBank />
+         </ProtectedRoute>
+         )
       },
       {
         icon: <DocumentCheckIcon {...icon} />,
         name: "Result",
         path: "/result",
-        element: <Result />,
+        element: (
+         <ProtectedRoute>
+           <Result />
+         </ProtectedRoute>
+        )
       },
     ],
   },
