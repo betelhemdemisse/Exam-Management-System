@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Card,
   CardBody,
@@ -11,63 +11,44 @@ import {
   DialogFooter,
 } from "@material-tailwind/react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
+import UserService from '../../service/user.service';
 
 export function User() {
   const fileInputRef = useRef(null);
 
-  const [users, setUsers] = useState([
-    {
-      fullName: "John Doe",
-      Gender: "Mail",
-      email: "john.doe@email.com",
-      campaign: "Summer Promo",
-      position: "Marketing Lead",
-      type: "Experienced",
-      Region: "oromia"
-    },
-    {
-      fullName: "Jane Smith",
-      Gender: "Mail",
-      email: "jane.smith@email.com",
-      campaign: "Winter Campaign",
-      position: "Sales Manager",
-      type: "Junior",
-      Region: "oromia"
-    },
-  ]);
-
+  const [users, setUsers] = useState([]);
   const [newUsers, setNewUsers] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
 
+  // Fetch users when component mounts
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const data = await UserService.getUsers();
+        console.log("Fetched users:", data);
+        setUsers(data);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
   const handleImportClick = () => {
-    fileInputRef.current.click(); // Trigger the file input
+    fileInputRef.current.click();
   };
 
-  const handleFileChange = () => {
-    // Simulated users from file
-    const importedUsers = [
-      {
-        fullName: "Alice Johnson",
-        Gender: "Mail",
-        email: "alice.johnson@email.com",
-        campaign: "Spring Drive",
-        position: "Content Strategist",
-        type: "Junior",
-        Region: "oromia"
-      },
-      {
-        fullName: "Bob Williams",
-        Gender: "Mail",
-        email: "bob.williams@email.com",
-        campaign: "Fall Launch",
-        position: "Product Manager",
-        type: "Experienced",
-        Region: "oromia"
-      },
-    ];
-
-    setNewUsers(importedUsers);
-    setOpenDialog(true); // Show preview before importing
+  const handleImportUser = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+      const importedUsers = await UserService.importUsers(file);
+      setNewUsers(importedUsers);
+      setOpenDialog(true);
+    } catch (error) {
+      console.error("Failed to import users:", error);
+    }
   };
 
   const handleConfirmImport = () => {
@@ -83,28 +64,25 @@ export function User() {
 
   return (
     <div className="mt-12 mb-8 flex flex-col gap-6">
-      {/* Hidden file input */}
       <input
         type="file"
         ref={fileInputRef}
         className="hidden"
-        onChange={handleFileChange}
+        onChange={handleImportUser}
       />
 
-      {/* Import button */}
       <div className="flex justify-end">
         <Button size="sm" color="blue" onClick={handleImportClick}>
           Import
         </Button>
       </div>
 
-      {/* Table */}
       <Card shadow={false} className="border border-blue-gray-100">
         <CardBody className="overflow-x-auto px-4 py-4">
           <table className="w-full min-w-[700px] text-left">
             <thead>
               <tr className="bg-blue-gray-50">
-                {["NO", "Full Name", "Email", "Gender", "Campaign", "Position", "Type", "Region", "Actions"].map(
+                {["NO", "Full Name", "Email", "Gender", "Company", "Position", "Type", "Region", "Actions"].map(
                   (header) => (
                     <th key={header} className="p-4">
                       <Typography
@@ -128,7 +106,7 @@ export function User() {
                   </td>
                   <td className="p-4">
                     <Typography className="text-sm font-semibold text-blue-gray-800">
-                      {user.fullName}
+                      {user.name}
                     </Typography>
                   </td>
                   <td className="p-4">
@@ -138,12 +116,12 @@ export function User() {
                   </td>
                   <td className="p-4">
                     <Typography className="text-sm text-blue-gray-700">
-                      {user.Gender}
+                      {user.gender}
                     </Typography>
                   </td>
                   <td className="p-4">
                     <Typography className="text-sm text-blue-gray-700">
-                      {user.campaign}
+                      {user.company}
                     </Typography>
                   </td>
                   <td className="p-4">
@@ -158,7 +136,7 @@ export function User() {
                   </td>
                   <td className="p-4">
                     <Typography className="text-sm text-blue-gray-700">
-                      {user.Region}
+                      {user.region}
                     </Typography>
                   </td>
                   <td className="p-4">
@@ -169,7 +147,6 @@ export function User() {
                 </tr>
               ))}
             </tbody>
-
           </table>
         </CardBody>
       </Card>
