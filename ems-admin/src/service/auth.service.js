@@ -50,7 +50,23 @@ const token = response?.data?.accessToken;
       }
     }
   }
+  async changePassword(oldPassword, newPassword, token) {
+    try {
+      const response = await apiService.post(
+        '/auth/change-password',
+        {
+          oldPassword,
+          newPassword,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error('Change password failed:', error);
+      throw error;
+    }
+  }
 }
-
-// Export a singleton instance
 export default new AuthService();

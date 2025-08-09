@@ -11,6 +11,7 @@ import {
 import { SignIn, SignUp } from "@/pages/auth";
 import { ExamLanding } from "./pages/Exam";
 import { Questions } from "./pages/Exam";
+import ProtectedRoute from './ProtectedRoute';
 const icon = {
   className: "w-5 h-5 text-inherit",
 };
@@ -36,11 +37,21 @@ export const routes = [
     pages: [
       {
         path: "",
-        element: <ExamLanding />,
+        element: 
+        (
+          <ProtectedRoute>
+            <ExamLanding />,  
+          </ProtectedRoute>  
+        )
       },
       {
         path:"/questions",
-        element:<Questions />
+        element:
+        (
+          <ProtectedRoute>
+            <Questions />
+          </ProtectedRoute>
+        )
       }
     ],
   },
