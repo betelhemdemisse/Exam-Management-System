@@ -1,27 +1,51 @@
 import { useNavigate } from "react-router-dom";
-import PreventInspection from "./securityMeasure/preventInspection"
+// import PreventInspection from "./securityMeasure/preventInspection";
+import examService from "@/service/exam.service";
+
 export function ExamLanding() {
   const navigate = useNavigate();
 
-  const handleBeginExam = () => {
-    const elem = document.documentElement;
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if (elem.mozRequestFullScreen) { // Firefox
-      elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) { // Safari
-      elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) { // IE/Edge
-      elem.msRequestFullscreen();
-    }
+  const handleBeginExam = async () => {
+    try {
+      // Static configID
+      const configID = "7a130b76-7289-40d3-bfe1-f52b6f945c55";
 
-    navigate("/exam/questions");
+      // Create the exam with exam_type
+      const createdExam = await examService.createExam({
+        configID,
+        exam_type: "mcq", // Added exam_type
+      });
+
+      // Store exam ID for later use
+      if (createdExam?.id) {
+        localStorage.setItem("currentExamId", createdExam.id);
+      }
+
+      // Request fullscreen
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        await elem.requestFullscreen();
+      } else if (elem.mozRequestFullScreen) {
+        await elem.mozRequestFullScreen();
+      } else if (elem.webkitRequestFullscreen) {
+        await elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        await elem.msRequestFullscreen();
+      }
+
+      // Navigate to questions page
+      navigate("/exam/questions");
+    } catch (error) {
+      console.error("Failed to start exam:", error);
+      alert("Unable to start the exam. Please try again.");
+    }
   };
 
+
   return (
-    <PreventInspection>
     <div className="h-screen bg-white-50 p-8 flex overflow-hidden">
       <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] flex">
+        {/* Sidebar */}
         <div className="w-1/4 bg-grey border-r p-4 flex flex-col rounded-lg">
           <div className="mb-6 border p-4 rounded-lg bg-green-50">
             <h1 className="text-2xl font-bold text-gray-800">Exam Dashboard</h1>
@@ -81,7 +105,7 @@ export function ExamLanding() {
 
           {/* Instructions Card */}
           <div className="flex-1 flex flex-col">
-            <div className="bg-grey border p-4 rounded-lg p-4 rounded-r-lg flex-1 flex flex-col">
+            <div className="bg-grey border p-4 rounded-lg flex-1 flex flex-col">
               <div className="flex-1 overflow-auto">
                 <h2 className="text-lg font-bold text-gray-800 mb-3">
                   Exam Instructions
@@ -97,19 +121,18 @@ export function ExamLanding() {
               </div>
               <div className="mt-4 pt-3 border-t border-gray-200">
                 <div className="flex justify-end">
-                 <button
-  onClick={handleBeginExam}
-  className="bg-green-100 hover:bg-green-200 text-green-1000 font-medium py-4 px-10 rounded-xl text-lg transition-colors"
->
-  Begin Exam →
-</button>
+                  <button
+                    onClick={handleBeginExam}
+                    className="bg-green-100 hover:bg-green-200 text-green-1000 font-medium py-4 px-10 rounded-xl text-lg transition-colors"
+                  >
+                    Begin Exam →
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div> 
+      </div>
     </div>
-    </PreventInspection>
   );
 }
