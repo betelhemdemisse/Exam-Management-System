@@ -9,7 +9,7 @@ const RedirectRoute = () => {
      const { token } = useStateContext();
 
     if (token) {
-      navigate('/exam'); 
+      navigate('/exam', { replace: true });
     } else {
       navigate('/sign-in'); 
     }
