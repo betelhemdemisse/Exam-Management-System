@@ -39,7 +39,7 @@ export function QuestionBank() {
                             const matchedChoice = q.choices.find(c => c.choiceID === ans.choiceID);
                             return matchedChoice ? matchedChoice.label : null;
                         })
-                        .filter(Boolean); // remove nulls
+                        .filter(Boolean); 
 
                     return {
                         ...q,
