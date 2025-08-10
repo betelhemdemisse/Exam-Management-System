@@ -10,14 +10,13 @@ export function Questions() {
   const [countdown, setCountdown] = useState(5);
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [selectedOption, setSelectedOption] = useState(null);
-  const [quizTime, setQuizTime] = useState(0); // in seconds
+  const [quizTime, setQuizTime] = useState(0);
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [countDownTimer, setCountDownTimer] = useState(15 * 60); // 15 minutes in seconds
+  const [countDownTimer, setCountDownTimer] = useState(15 * 60); 
   const navigate = useNavigate();
   const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
 const [answeredQuestions, setAnsweredQuestions] = useState([]);
-  // Refs for timer intervals
   const countdownTimerRef = useRef(null);
   const quizTimerRef = useRef(null);
 

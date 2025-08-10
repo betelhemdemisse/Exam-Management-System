@@ -5,7 +5,6 @@ const SecureEnvironment = ({ children }) => {
   const navigate = useNavigate();
   const [showWarningModal, setShowWarningModal] = useState(false);
 
-  // Tab/window switching detection
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
@@ -23,7 +22,6 @@ const SecureEnvironment = ({ children }) => {
     };
   }, [showWarningModal]);
 
-  // Mouse leaving window detection
   useEffect(() => {
     const handleMouseLeave = (e) => {
       if (e.clientY < 0 || e.clientX < 0 || 
@@ -36,7 +34,6 @@ const SecureEnvironment = ({ children }) => {
     return () => document.removeEventListener('mouseleave', handleMouseLeave);
   }, []);
 
-  // Security measures
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault();
     const handleSelectStart = (e) => e.preventDefault();
@@ -48,7 +45,6 @@ const SecureEnvironment = ({ children }) => {
       }
     };
 
-    // Detect dev tools opening
     const checkDevTools = () => {
       const threshold = 160;
       if ((window.outerWidth - window.innerWidth > threshold) || 
@@ -62,7 +58,6 @@ const SecureEnvironment = ({ children }) => {
     document.addEventListener('keydown', handleKeyDown);
     const devToolsCheckInterval = setInterval(checkDevTools, 500);
 
-    // Disable text selection
     const style = document.createElement('style');
     style.innerHTML = '* { user-select: none !important; }';
     document.head.appendChild(style);
