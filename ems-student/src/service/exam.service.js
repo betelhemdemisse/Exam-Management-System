@@ -49,7 +49,7 @@ class ExamService {
   // List my exams
   async getMyExams() {
     try {
-      const response = await apiService.get('/api/exams');
+      const response = await apiService.get('/exams');
       return response.data;
     } catch (error) {
       console.error("Error fetching exams:", error);
@@ -57,10 +57,9 @@ class ExamService {
     }
   }
 
-  // Get exam with questions and choices
   async getExamById(examID) {
     try {
-      const response = await apiService.get(`/api/exams/${examID}`);
+      const response = await apiService.get(`/exams/${examID}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching exam ${examID}:`, error);

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import PreventInspection from "./securityMeasure/preventInspection"
 
 import { Link, useNavigate } from "react-router-dom";
-
+import ExamService from "../../service/exam.service";
 
 export function Questions() {
   const [showContent, setShowContent] = useState(false);
@@ -19,66 +19,27 @@ export function Questions() {
 const [answeredQuestions, setAnsweredQuestions] = useState([]);
   const countdownTimerRef = useRef(null);
   const quizTimerRef = useRef(null);
+  const [questions,setQuestions]= useState();
+const getExam = async () => {
+  try {
+        const currentExamId = localStorage.getItem("currentExamId");
+        console.log("currentExamId",currentExamId)
+    const response = await ExamService.getExamById(currentExamId);
+    console.log("response", response);
 
-  const questions = [
-    {
-      id: 1,
-      text: "Which of the following best describes the concept of 'props' in React?",
-      options: [
-        "Props are internal state management tools within a component",
-        "Props are immutable inputs passed down from parent to child components",
-        "Props are lifecycle methods that control component rendering",
-        "Props are hooks that manage side effects in functional components"
-      ],
-      correctAnswer: 1
-    },
-    {
-      id: 2,
-      text: "What is the purpose of the virtual DOM in React?",
-      options: [
-        "To directly manipulate the browser's DOM for better performance",
-        "To provide a virtual representation of the UI that is kept in memory",
-        "To replace the need for state management libraries",
-        "To enable server-side rendering of components"
-      ],
-      correctAnswer: 1
-    },
-    {
-      id: 3,
-      text: "Which hook is used to perform side effects in functional components?",
-      options: [
-        "useState",
-        "useEffect",
-        "useContext",
-        "useReducer"
-      ],
-      correctAnswer: 1
-    },
-    {
-      id: 4,
-      text: "What is the correct way to update state based on previous state in React?",
-      options: [
-        "setState(newValue)",
-        "setState(prevState => newValue)",
-        "this.state = newValue",
-        "state.update(newValue)"
-      ],
-      correctAnswer: 1
-    },
-    {
-      id: 5,
-      text: "Which method is called right before a component is removed from the DOM?",
-      options: [
-        "componentDidMount",
-        "componentWillUnmount",
-        "componentDidUpdate",
-        "shouldComponentUpdate"
-      ],
-      correctAnswer: 1
-    }
-  ];
+    const questions = response
+    console.log("questions array", questions);
+   setQuestions(questions.questions)
 
-  // Countdown timer before quiz starts
+  } catch (error) {
+    console.error("Error fetching exam:", error);
+    return [];
+  }
+};
+
+useEffect(()=>{
+  getExam();
+},[])
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -94,7 +55,6 @@ const [answeredQuestions, setAnsweredQuestions] = useState([]);
     return () => clearInterval(timer);
   }, []);
 
-  // Quiz countdown timer (15 minutes)
   useEffect(() => {
     if (!showContent) return;
 
@@ -102,7 +62,7 @@ const [answeredQuestions, setAnsweredQuestions] = useState([]);
       setCountDownTimer((prev) => {
         if (prev <= 1) {
           clearInterval(countdownTimerRef.current);
-          handleFinishAttempt(); // Auto-submit when time runs out
+          handleFinishAttempt();
           return 0;
         }
         return prev - 1;
@@ -116,7 +76,6 @@ const [answeredQuestions, setAnsweredQuestions] = useState([]);
     };
   }, [showContent]);
 
-  // Quiz elapsed time counter
   useEffect(() => {
     if (!showContent) return;
 
@@ -233,7 +192,7 @@ const handleFinishAttempt = () => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-
+console.log("questions",questions)
   if (!showContent) {
     return (
       <PreventInspection>
@@ -256,7 +215,6 @@ const handleFinishAttempt = () => {
   const progressPercentage = (currentQuestion / questions.length) * 100;
 
   return (
-    <PreventInspection>
     <div className="h-screen bg-white flex flex-col">
 
       {/* ✅ Fullscreen Warning Modal */}
@@ -381,15 +339,19 @@ const handleFinishAttempt = () => {
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-lg shadow-lg p-8">
               <h2 className="text-xl font-semibold mb-6 text-gray-800">
-                {currentQ.text}
+                {currentQ.question_text}
               </h2>
 
               <div className="space-y-3">
-                {currentQ.options.map((option, index) => (
+                {currentQ.choices.map((option, index) => (
                   <label
-                    key={index}
+                    key={option.choiceID}
                     htmlFor={`option${index}`}
-                    className={`block p-4 rounded-lg cursor-pointer border-l-4 ${selectedOption === index ? 'border-l-blue-500 bg-blue-50 shadow-md' : 'border-l-transparent hover:border-l-blue-500 hover:shadow-md hover:bg-blue-50'} transition-all duration-200`}
+                    className={`block p-4 rounded-lg cursor-pointer border-l-4 ${
+                      selectedOption === index
+                        ? 'border-l-blue-500 bg-blue-50 shadow-md'
+                        : 'border-l-transparent hover:border-l-blue-500 hover:shadow-md hover:bg-blue-50'
+                    } transition-all duration-200`}
                   >
                     <div className="flex items-start">
                       <input
@@ -400,9 +362,7 @@ const handleFinishAttempt = () => {
                         checked={selectedOption === index}
                         onChange={() => handleOptionSelect(index)}
                       />
-                      <span className="text-gray-700">
-                        {option}
-                      </span>
+                      <span className="text-gray-700">{option.choice_text}</span>
                     </div>
                   </label>
                 ))}
@@ -501,7 +461,6 @@ const handleFinishAttempt = () => {
 
       </div>
     </div>
-    </PreventInspection>
   );
 }
 
