@@ -7,11 +7,11 @@ export function ExamLanding() {
     const elem = document.documentElement;
     if (elem.requestFullscreen) {
       elem.requestFullscreen();
-    } else if (elem.mozRequestFullScreen) { // Firefox
+    } else if (elem.mozRequestFullScreen) {
       elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) { // Safari
+    } else if (elem.webkitRequestFullscreen) { 
       elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) { // IE/Edge
+    } else if (elem.msRequestFullscreen) { 
       elem.msRequestFullscreen();
     }
 
