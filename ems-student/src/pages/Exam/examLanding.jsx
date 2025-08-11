@@ -7,7 +7,7 @@ export function ExamLanding() {
 
   const handleBeginExam = async () => {
     try {
-      const configID = "bf7a4a83-5886-4907-b5aa-a45126cca1c1";
+      const configID = "7a130b76-7289-40d3-bfe1-f52b6f945c55";
 
       const createdExam = await examService.createExam({
         configID,
