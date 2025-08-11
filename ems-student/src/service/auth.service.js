@@ -7,6 +7,15 @@ const apiService = axios.create({
     'Content-Type': 'application/json'
   }
 });
+
+apiService.interceptors.request.use((config) => {
+  const token = localStorage.getItem('userToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 class AuthService {
     async login(email, password, setToken) {
     try {
@@ -43,6 +52,14 @@ class AuthService {
       throw error;
     }
   }
-
+async getCurrentUser(){
+  try {
+    const response = await apiService.get('/auth/me');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching current user:', error);
+    throw error;
+  }
+}
 }
 export default new AuthService();
