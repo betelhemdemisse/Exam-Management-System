@@ -1,8 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
-import PreventInspection from "./securityMeasure/preventInspection"
-
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import ExamService from "../../service/exam.service";
 
 export function Questions() {
@@ -13,36 +10,23 @@ export function Questions() {
   const [quizTime, setQuizTime] = useState(0);
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [countDownTimer, setCountDownTimer] = useState(15 * 60);
   const navigate = useNavigate();
   const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
   const [answeredQuestions, setAnsweredQuestions] = useState([]);
   const countdownTimerRef = useRef(null);
   const quizTimerRef = useRef(null);
-  const [questions, setQuestions] = useState();
   const [selectedOptions, setSelectedOptions] = useState({});
-  const [exam,setExam] = useState();
-  const getExam = async () => {
-    try {
-      const currentExamId = localStorage.getItem("currentExamId");
-      const response = await ExamService.getExamById(currentExamId);
-      console.log("response", response);
-      setExam(response);
-      setCountDownTimer(response?.duration_minutes*60)
-      const questions = response
-      setQuestions(questions.questions)
 
-    } catch (error) {
-      console.error("Error fetching exam:", error);
-      return [];
-    }
-  };
+  const location = useLocation();
+  const createdExam = location.state;  
+  console.log("Exam data from location:", createdExam);
+  const [countDownTimer, setCountDownTimer] = useState(createdExam.duration_minutes * 60 || 0);
 
+  const [exam, setExam] = useState(createdExam || null);
 
+  // Extract questions array from exam object or empty array
+  const questionsArray = exam?.questions || [];
 
-  useEffect(() => {
-    getExam();
-  }, [])
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -54,7 +38,6 @@ export function Questions() {
         return prev - 1;
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
@@ -73,9 +56,7 @@ export function Questions() {
     }, 1000);
 
     return () => {
-      if (countdownTimerRef.current) {
-        clearInterval(countdownTimerRef.current);
-      }
+      if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
     };
   }, [showContent]);
 
@@ -87,20 +68,16 @@ export function Questions() {
     }, 1000);
 
     return () => {
-      if (quizTimerRef.current) {
-        clearInterval(quizTimerRef.current);
-      }
+      if (quizTimerRef.current) clearInterval(quizTimerRef.current);
     };
   }, [showContent]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
-        // User exited fullscreen
         setShowFullscreenWarning(true);
       }
     };
-
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
@@ -111,16 +88,9 @@ export function Questions() {
     const elem = document.documentElement;
     if (elem.requestFullscreen) {
       elem.requestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
-      elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) {
-      elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) {
-      elem.msRequestFullscreen();
     }
     setShowFullscreenWarning(false);
   };
-
 
   const handleExitExam = () => {
     clearInterval(countdownTimerRef.current);
@@ -132,10 +102,10 @@ export function Questions() {
     if (selectedOption !== null) {
       try {
         const currentExamId = localStorage.getItem("currentExamId");
-        const currentQ = questions[currentQuestion - 1];
+        const currentQ = questionsArray[currentQuestion - 1];
         const answerData = {
           questionID: currentQ.questionID,
-          choiceID: currentQ.choices[selectedOption].choiceID
+          choiceID: currentQ.choices[selectedOption].choiceID,
         };
         await ExamService.saveAnswer(currentExamId, answerData);
       } catch (error) {
@@ -143,13 +113,12 @@ export function Questions() {
       }
     }
 
-    if (currentQuestion < questions.length) {
+    if (currentQuestion < questionsArray.length) {
       const nextQuestionNumber = currentQuestion + 1;
       setCurrentQuestion(nextQuestionNumber);
       setSelectedOption(selectedOptions[nextQuestionNumber] ?? null);
     }
   };
-
 
   const handlePrevious = () => {
     if (currentQuestion > 1) {
@@ -158,11 +127,12 @@ export function Questions() {
       setSelectedOption(selectedOptions[prevQuestionNumber] ?? null);
     }
   };
+
   const handleOptionSelect = (optionIndex) => {
     setSelectedOption(optionIndex);
     setSelectedOptions((prev) => ({
       ...prev,
-      [currentQuestion]: optionIndex
+      [currentQuestion]: optionIndex,
     }));
     if (!answeredQuestions.includes(currentQuestion)) {
       setAnsweredQuestions([...answeredQuestions, currentQuestion]);
@@ -175,7 +145,7 @@ export function Questions() {
   };
 
   const handleFinishAttempt = () => {
-    const unansweredCount = questions.length - answeredQuestions.length;
+    const unansweredCount = questionsArray.length - answeredQuestions.length;
     if (unansweredCount > 0) {
       if (window.confirm(`You have ${unansweredCount} unanswered questions. Are you sure you want to finish?`)) {
         setShowFinishConfirmation(true);
@@ -184,24 +154,21 @@ export function Questions() {
       setShowFinishConfirmation(true);
     }
   };
+
   const confirmFinish = async () => {
     try {
       const currentExamId = localStorage.getItem("currentExamId");
-
       if (selectedOption !== null) {
-        const currentQ = questions[currentQuestion - 1];
+        const currentQ = questionsArray[currentQuestion - 1];
         const answerData = {
           questionID: currentQ.questionID,
-          choiceID: currentQ.choices[selectedOption].choiceID
+          choiceID: currentQ.choices[selectedOption].choiceID,
         };
         await ExamService.saveAnswer(currentExamId, answerData);
       }
-
       await ExamService.submitExam(currentExamId);
-
       clearInterval(countdownTimerRef.current);
       clearInterval(quizTimerRef.current);
-
       setShowFinishConfirmation(false);
       setShowSuccessModal(true);
     } catch (error) {
@@ -209,8 +176,6 @@ export function Questions() {
       alert("There was an error submitting your exam. Please try again.");
     }
   };
-
-
 
   const cancelFinish = () => {
     setShowFinishConfirmation(false);
@@ -227,11 +192,11 @@ export function Questions() {
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
+
   if (!showContent) {
     return (
-      // <PreventInspection>
       <div className="h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">Get Ready!</h1>
@@ -243,17 +208,18 @@ export function Questions() {
           </div>
         </div>
       </div>
-      // </PreventInspection>
     );
   }
 
-  const currentQ = questions[currentQuestion - 1];
-  const progressPercentage = (currentQuestion / questions.length) * 100;
+  // Defensive: check currentQ exists
+  const currentQ = questionsArray[currentQuestion - 1];
+  if (!currentQ) {
+    return <div>Loading questions...</div>;
+  }
 
   return (
     <div className="h-screen bg-white flex flex-col">
-
-      {/* ✅ Fullscreen Warning Modal */}
+      {/* Fullscreen Warning Modal */}
       {showFullscreenWarning && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
@@ -305,7 +271,6 @@ export function Questions() {
         </div>
       )}
 
-
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -319,7 +284,6 @@ export function Questions() {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">Exam Submitted Successfully!</h3>
               <div className="mb-6">
                 <p className="text-gray-600 mb-2">Congratulations on completing your exam.</p>
-
               </div>
               <div className="flex flex-col space-y-3">
                 <Link to="/sign-in">
@@ -335,8 +299,6 @@ export function Questions() {
         </div>
       )}
 
-
-
       <div className="flex min-h-screen overflow-hidden bg-gray-50 p-6 gap-4 items-start">
         {/* Left Section - Question Card */}
         <div className="flex-1 h-[680px] bg-white rounded-xl shadow-lg p-10 flex flex-col justify-between">
@@ -344,17 +306,17 @@ export function Questions() {
           <div className="mb-8">
             <div className="flex justify-between text-sm text-gray-600 mb-2">
               <span>
-                Question {currentQuestion} of {questions.length}
+                Question {currentQuestion} of {questionsArray.length}
               </span>
               <span>
-                {Math.round((currentQuestion / questions.length) * 100)}% Complete
+                {Math.round((currentQuestion / questionsArray.length) * 100)}% Complete
               </span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500 ease-in-out"
                 style={{
-                  width: `${(currentQuestion / questions.length) * 100}%`,
+                  width: `${(currentQuestion / questionsArray.length) * 100}%`,
                   background: `linear-gradient(to right, #34d399, #3b82f6)`,
                 }}
               ></div>
@@ -372,10 +334,11 @@ export function Questions() {
               <label
                 key={option.choiceID}
                 htmlFor={`option${index}`}
-                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ${selectedOption === index
+                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                  selectedOption === index
                     ? "border-blue-500 bg-blue-50 shadow-md"
                     : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
-                  }`}
+                }`}
               >
                 <input
                   type="radio"
@@ -393,17 +356,16 @@ export function Questions() {
           {/* Navigation Buttons */}
           <div className="flex justify-between mt-10">
             <button
-              className={`px-5 py-2 rounded-lg font-medium border border-gray-300 text-gray-700 shadow-sm transition ${currentQuestion === 1
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-gray-100"
-                }`}
+              className={`px-5 py-2 rounded-lg font-medium border border-gray-300 text-gray-700 shadow-sm transition ${
+                currentQuestion === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
+              }`}
               onClick={handlePrevious}
               disabled={currentQuestion === 1}
             >
               ← Previous
             </button>
 
-            {currentQuestion < questions.length ? (
+            {currentQuestion < questionsArray.length ? (
               <button
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-md hover:bg-blue-700 transition"
                 onClick={handleNext}
@@ -425,12 +387,8 @@ export function Questions() {
         <div className="w-72 h-[680px] bg-white rounded-xl shadow-lg flex flex-col p-4">
           {/* Timer Card */}
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white shadow-md mb-4">
-            <p className="text-sm font-light flex items-center justify-center gap-1 mb-1">
-              ⏳ Time Remaining
-            </p>
-            <div className="flex justify-center items-center text-2xl font-bold tracking-tight">
-              {formatTime(countDownTimer)}
-            </div>
+            <p className="text-sm font-light flex items-center justify-center gap-1 mb-1">⏳ Time Remaining</p>
+            <div className="flex justify-center items-center text-2xl font-bold tracking-tight">{formatTime(countDownTimer)}</div>
           </div>
 
           {/* Divider Line */}
@@ -439,15 +397,14 @@ export function Questions() {
           {/* Navigation Section */}
           <div className="flex-1 overflow-y-auto">
             <div className="grid grid-cols-5 gap-3">
-              {questions.map((q, index) => {
+              {questionsArray.map((q, index) => {
                 const isCurrent = currentQuestion === index + 1;
                 const isAnswered = answeredQuestions.includes(index + 1);
                 const isSkipped = !isAnswered && currentQuestion > index + 1;
 
-                let baseClasses =
-                  "h-10 w-10 flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
-
+                let baseClasses = "h-10 w-10 flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
                 let statusClass = "";
+
                 if (isCurrent) {
                   statusClass = "bg-blue-500 text-white border-blue-500";
                 } else if (isAnswered) {
@@ -455,13 +412,12 @@ export function Questions() {
                 } else if (isSkipped) {
                   statusClass = "bg-red-500 text-white border-red-500";
                 } else {
-                  statusClass =
-                    "bg-gray-200 text-gray-700 border-gray-200 hover:bg-gray-300";
+                  statusClass = "bg-gray-200 text-gray-700 border-gray-200 hover:bg-gray-300";
                 }
 
                 return (
                   <button
-                    key={q.id}
+                    key={q.questionID || index}
                     onClick={() => handleQuestionNavigation(index + 1)}
                     className={`${baseClasses} ${statusClass}`}
                   >
@@ -473,8 +429,6 @@ export function Questions() {
           </div>
         </div>
       </div>
-
-
     </div>
   );
 }

@@ -20,26 +20,23 @@ class ExamService {
   // Create an exam
   async createExam(data) {
     try {
-      console.log("Sending createExam payload:", data); // Log the request payload
+      console.log("Sending createExam payload:", data);
 
-      const response = await apiService.post('/exams', data, {
+      const response = await apiService.post('/exams/start', data, {
         headers: {
-          'Content-Type': 'application/json', // Ensure proper content type
+          'Content-Type': 'application/json',
         },
       });
 
-      console.log("Exam created successfully:", response.data); // Log the success response
+      console.log("Exam created successfully:", response.data);
       return response.data;
     } catch (error) {
       if (error.response) {
-        // Backend responded with a status code outside 2xx
         console.error("Backend error response status:", error.response.status);
         console.error("Backend error response data:", error.response.data);
       } else if (error.request) {
-        // Request made but no response received
         console.error("No response received:", error.request);
       } else {
-        // Something happened in setting up the request
         console.error("Error creating exam:", error.message);
       }
       throw error;
