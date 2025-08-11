@@ -109,7 +109,7 @@ const handleLogin = async (e) => {
 
           <div className="flex items-center justify-between gap-2 mt-6">
             <Typography
-              variant="small"
+              variant="medium"
               className="font-medium text-gray-900 cursor-pointer"
               onClick={() => setUseLoginCode(!useLoginCode)}
             >
