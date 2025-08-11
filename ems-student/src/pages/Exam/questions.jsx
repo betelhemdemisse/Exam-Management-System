@@ -21,16 +21,15 @@ export function Questions() {
   const quizTimerRef = useRef(null);
   const [questions, setQuestions] = useState();
   const [selectedOptions, setSelectedOptions] = useState({});
-
+  const [exam,setExam] = useState();
   const getExam = async () => {
     try {
       const currentExamId = localStorage.getItem("currentExamId");
-      console.log("currentExamId", currentExamId)
       const response = await ExamService.getExamById(currentExamId);
       console.log("response", response);
-
+      setExam(response);
+      setCountDownTimer(response?.duration_minutes*60)
       const questions = response
-      console.log("questions array", questions);
       setQuestions(questions.questions)
 
     } catch (error) {
@@ -189,7 +188,6 @@ export function Questions() {
     try {
       const currentExamId = localStorage.getItem("currentExamId");
 
-      // Save last answer if needed
       if (selectedOption !== null) {
         const currentQ = questions[currentQuestion - 1];
         const answerData = {
@@ -199,10 +197,8 @@ export function Questions() {
         await ExamService.saveAnswer(currentExamId, answerData);
       }
 
-      // Submit the exam
       await ExamService.submitExam(currentExamId);
 
-      // Stop timers
       clearInterval(countdownTimerRef.current);
       clearInterval(quizTimerRef.current);
 
@@ -224,18 +220,15 @@ export function Questions() {
     setShowSuccessModal(false);
   };
 
-  // Format the countdown to always show 2 digits (e.g., "05" instead of "5")
   const formatCountdown = (time) => {
     return time < 10 ? `0${time}` : time.toString();
   };
 
-  // Format time as MM:SS
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-  console.log("questions", questions)
   if (!showContent) {
     return (
       // <PreventInspection>
