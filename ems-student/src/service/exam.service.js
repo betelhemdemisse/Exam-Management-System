@@ -89,16 +89,17 @@ class ExamService {
     }
   }
 
-  // Submit the exam
-  async submitExam(examID) {
-    try {
-      const response = await apiService.post(`/exams/${examID}/submit`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error submitting exam ${examID}:`, error);
-      throw error;
-    }
+ async submitExam(payload) {
+  try {
+    console.log("payload",payload)
+    const response = await apiService.post(`/exams/submit`, payload);
+    return response.data;
+  } catch (error) {
+    console.error(`Error submitting exam :`, error);
+    throw error;
   }
+}
+
 
   // Get result for a submitted exam
   async getExamResult(examID) {
