@@ -170,14 +170,14 @@ export function Result() {
                                     <td className="p-4 align-top">{res.totalQuestions}</td>
                                     <td className="p-4 align-top">{res.score}</td>
                                     <td
-                                        className={`p-4 align-top font-semibold ${
-                                            res.status.toLowerCase() === "pass"
+                                        className={`p-4 align-top font-semibold ${res.status.toLowerCase() === "passed"
                                                 ? "text-green-600"
                                                 : "text-red-600"
-                                        }`}
+                                            }`}
                                     >
                                         {res.status}
                                     </td>
+
                                     <td className="p-4 align-top">
                                         {new Date(res.dateOfExam).toLocaleDateString()}
                                     </td>
