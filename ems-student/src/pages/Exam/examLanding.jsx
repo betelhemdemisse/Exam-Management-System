@@ -56,7 +56,6 @@ console.log("createdExam",createdExam.examID)
 </header>
 
    <div className="flex justify-center p-6 space-y-6 flex-col items-center">
-  {/* Blue Box */}
 <div
   className="w-full max-w-7xl text-white p-8 rounded-lg shadow-lg flex flex-col lg:flex-row justify-between items-center"
   style={{ backgroundColor: '#1167b4' }}
@@ -91,17 +90,13 @@ console.log("createdExam",createdExam.examID)
       </div>
     </div>
 
-    {/* Logo */}
     <div className="lg:w-1/3 flex justify-center mt-6 lg:mt-0">
       <img src={Ems_logo} alt="Logo" className="max-h-32 object-contain" />
     </div>
   </div>
 
-  {/* White Box */}
     
-{/* White Box */}
 <div className="w-full max-w-7xl bg-white p-8 rounded-lg shadow-lg flex flex-col lg:flex-row justify-between items-start gap-6 relative">
-  {/* Left: User Info */}
   <div className="lg:w-2/3">
     <h2 className="text-lg font-bold mb-4">User Information</h2>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -118,7 +113,6 @@ console.log("createdExam",createdExam.examID)
         <p className="font-medium">UI/UX Designer</p>
       </div>
     </div>
-    {/* Button below user info */}
    <button
   onClick={handleBeginExam}
   className="text-white px-6 py-2 rounded transition flex items-center gap-2
@@ -130,7 +124,6 @@ console.log("createdExam",createdExam.examID)
 
   </div>
 
-  {/* Image in top-right corner, slightly transparent and smaller */}
 <div className="absolute top-2 right-2 w-49 h-48 opacity-50">
   <img
     src={Question_mark_vector}
@@ -140,11 +133,7 @@ console.log("createdExam",createdExam.examID)
 </div>
 
 </div>
-
-
   </div>
-
-
-      </div>
+   </div>
     );
   }
