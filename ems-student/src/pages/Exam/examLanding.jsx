@@ -11,7 +11,7 @@ export function ExamLanding() {
 
       const createdExam = await examService.createExam({
         configID,
-        exam_type: "mcq", // Added exam_type
+        exam_type: "junior", // Added exam_type
       });
 console.log("createdExam",createdExam.examID)
       if (createdExam?.examID) {
