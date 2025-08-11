@@ -1,17 +1,18 @@
 import { useNavigate } from "react-router-dom";
 // import PreventInspection from "./securityMeasure/preventInspection";
 import examService from "@/service/exam.service";
-
+import Ems_logo from "../../assets/img/ems_logo.png";
+import Question_mark_vector from "../../assets/img/question_mark_vector.png";
 export function ExamLanding() {
   const navigate = useNavigate();
 
   const handleBeginExam = async () => {
     try {
-      const configID = "7a130b76-7289-40d3-bfe1-f52b6f945c55";
+      const configID = "66ddf678-616d-4108-8b70-efe5b851bce3";
 
       const createdExam = await examService.createExam({
         configID,
-        exam_type: "mcq", // Added exam_type
+        exam_type: "mcq"
       });
 console.log("createdExam",createdExam.examID)
       if (createdExam?.examID) {
@@ -39,96 +40,111 @@ console.log("createdExam",createdExam.examID)
 
 
   return (
-    <div className="h-screen bg-white-50 p-8 flex overflow-hidden">
-      <div className="bg-white rounded-lg w-full max-w-7xl h-[90vh] flex">
-        {/* Sidebar */}
-        <div className="w-1/4 bg-grey border-r p-4 flex flex-col rounded-lg">
-          <div className="mb-6 border p-4 rounded-lg bg-green-50">
-            <h1 className="text-2xl font-bold text-gray-800">Exam Dashboard</h1>
-            <p className="text-sm text-gray-600">
-              Welcome to your certification portal
-            </p>
-          </div>
+    <div className="min-h-screen bg-gray-100">
+<header className="bg-white shadow p-4 flex justify-end items-center max-w-7xl mx-auto rounded-lg">
+  <div className="flex items-center gap-3">
+    <div className="text-right">
+      <p className="font-semibold text-sm">Tensae Tefera</p>
+      <p className="text-gray-500 text-xs">User</p>
+    </div>
+    <img
+      src="/profile.jpg"
+      alt="Profile"
+      className="w-10 h-10 rounded-full border border-gray-300"
+    />
+  </div>
+</header>
 
-          <div className="bg-green-50 p-4 rounded-lg border border-black-500 flex-1">
-            <h2 className="text-lg font-bold text-gray-800 mb-3">
-              User Information
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs text-gray-500">Full Name</p>
-                <p className="text-lg font-semibold">Johnathan D. Smith</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Company</p>
-                <p className="text-lg font-semibold">TechSolutions Inc.</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Position</p>
-                <p className="text-lg font-semibold">Senior Developer</p>
-              </div>
-            </div>
-          </div>
+   <div className="flex justify-center p-6 space-y-6 flex-col items-center">
+  {/* Blue Box */}
+<div
+  className="w-full max-w-7xl text-white p-8 rounded-lg shadow-lg flex flex-col lg:flex-row justify-between items-center"
+  style={{ backgroundColor: '#1167b4' }}
+>  <div className="lg:w-2/3">
+      <div className="text-sm uppercase tracking-wide mb-2">
+        Dashboard / My Courses
+      </div>
+      <h1 className="text-2xl font-bold mb-4">
+        Advanced Technical Certification
+      </h1>
+      <p className="mb-6 text-sm leading-relaxed">
+        Exam description. Donec ullamcorper nulla non metus auctor
+        fringilla. Cras justo odio, dapibus ac facilisis in, egestas eget
+        quam. Duis mollis, est non commodo luctus, nisi erat porttitor
+        ligula, eget lacinia odio sem nec elit. Donec id elit non mi porta
+        gravida at eget metus.
+      </p>
+
+      <div className="flex flex-wrap gap-8">
+        <div>
+          <p className="font-bold text-lg">#75</p>
+          <span className="text-sm">Exam Questions</span>
         </div>
-
-        {/* Main Content */}
-        <div className="w-3/4 flex flex-col pl-6">
-          <div className="bg-white border p-4 rounded-lg mb-4">
-            <div className="bg-green-50 p-3 rounded-lg mb-3">
-              <h2 className="text-lg font-bold text-gray-800">Exam Information</h2>
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Exam Name:</span>
-                <span className="font-medium">
-                  Advanced Technical Certification
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Duration:</span>
-                <span className="font-medium">120 minutes</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Questions:</span>
-                <span className="font-medium">75 items</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Passing Score:</span>
-                <span className="font-medium">80%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Instructions Card */}
-          <div className="flex-1 flex flex-col">
-            <div className="bg-grey border p-4 rounded-lg flex-1 flex flex-col">
-              <div className="flex-1 overflow-auto">
-                <h2 className="text-lg font-bold text-gray-800 mb-3">
-                  Exam Instructions
-                </h2>
-                <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700">
-                  <li>The exam must be completed in one session.</li>
-                  <li>Ensure your device is fully charged.</li>
-                  <li>Close all other applications.</li>
-                  <li>Use of external resources is prohibited.</li>
-                  <li>System will auto-submit when time expires.</li>
-                  <li>Report technical issues immediately.</li>
-                </ol>
-              </div>
-              <div className="mt-4 pt-3 border-t border-gray-200">
-                <div className="flex justify-end">
-                  <button
-                    onClick={handleBeginExam}
-                    className="bg-green-100 hover:bg-green-200 text-green-1000 font-medium py-4 px-10 rounded-xl text-lg transition-colors"
-                  >
-                    Begin Exam →
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div>
+          <p className="font-bold text-lg">120 Minutes</p>
+          <span className="text-sm">Duration</span>
+        </div>
+        <div>
+          <p className="font-bold text-lg">80%</p>
+          <span className="text-sm">Passing Score</span>
         </div>
       </div>
     </div>
-  );
-}
+
+    {/* Logo */}
+    <div className="lg:w-1/3 flex justify-center mt-6 lg:mt-0">
+      <img src={Ems_logo} alt="Logo" className="max-h-32 object-contain" />
+    </div>
+  </div>
+
+  {/* White Box */}
+    
+{/* White Box */}
+<div className="w-full max-w-7xl bg-white p-8 rounded-lg shadow-lg flex flex-col lg:flex-row justify-between items-start gap-6 relative">
+  {/* Left: User Info */}
+  <div className="lg:w-2/3">
+    <h2 className="text-lg font-bold mb-4">User Information</h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div>
+        <p className="text-gray-500 text-sm">Full Name</p>
+        <p className="font-medium">Tensae Tefera</p>
+      </div>
+      <div>
+        <p className="text-gray-500 text-sm">Company</p>
+        <p className="font-medium">TechSolutions Inc.</p>
+      </div>
+      <div>
+        <p className="text-gray-500 text-sm">Position</p>
+        <p className="font-medium">UI/UX Designer</p>
+      </div>
+    </div>
+    {/* Button below user info */}
+   <button
+  onClick={handleBeginExam}
+  className="text-white px-6 py-2 rounded transition flex items-center gap-2
+    bg-gradient-to-r from-[#1167B4] to-[#7F7EFF]
+    hover:from-[#0e559a] hover:to-[#6a6de6]"
+>
+  Begin Exam <span className="text-lg">&rarr;</span>
+</button>
+
+  </div>
+
+  {/* Image in top-right corner, slightly transparent and smaller */}
+<div className="absolute top-2 right-2 w-49 h-48 opacity-50">
+  <img
+    src={Question_mark_vector}
+    alt="User Image"
+    className="rounded object-cover w-full h-full"
+  />
+</div>
+
+</div>
+
+
+  </div>
+
+
+      </div>
+    );
+  }
