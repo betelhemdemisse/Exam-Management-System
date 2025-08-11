@@ -38,7 +38,7 @@ export function Questions() {
     }
   };
 
-  
+
 
   useEffect(() => {
     getExam();
@@ -335,145 +335,128 @@ export function Questions() {
         </div>
       )}
 
-      <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
-        <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
-          <div className="w-full flex justify-between items-start">
-            {/* Left side - Progress bar section */}
-            <div className="flex-1 max-w-6xl">
-              <div className="flex justify-between text-sm text-gray-600 mb-1">
-                <span>Question {currentQuestion} of {questions.length}</span>
-                <span>{Math.round(progressPercentage)}% Complete</span>
-              </div>
 
-              <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner relative overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500 ease-in-out"
-                  style={{
-                    width: `${progressPercentage}%`,
-                    background: `linear-gradient(to right, #34d399, #3b82f6)`
-                  }}
-                ></div>
-                <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-700">
-                  {Math.round(progressPercentage)}%
-                </span>
-              </div>
-            </div>
 
-            <div className="ml-4 flex-shrink-0 flex items-center">
-              <span className="text-xl font-semibold text-gray-900 tracking-wide">
-                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  Johnathan D. Smith
-                </span>
+      <div className="flex min-h-screen overflow-hidden bg-gray-50 p-6 gap-4 items-start">
+        {/* Left Section - Question Card */}
+        <div className="flex-1 h-[680px] bg-white rounded-xl shadow-lg p-10 flex flex-col justify-between">
+          {/* Progress Bar */}
+          <div className="mb-8">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>
+                Question {currentQuestion} of {questions.length}
+              </span>
+              <span>
+                {Math.round((currentQuestion / questions.length) * 100)}% Complete
               </span>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 overflow-auto p-4 mt-24">
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-xl font-semibold mb-6 text-gray-800">
-                {currentQ.question_text}
-              </h2>
-
-              <div className="space-y-3">
-                {currentQ.choices.map((option, index) => (
-                  <label
-                    key={option.choiceID}
-                    htmlFor={`option${index}`}
-                    className={`block p-4 rounded-lg cursor-pointer border-l-4 ${selectedOption === index
-                      ? 'border-l-blue-500 bg-blue-50 shadow-md'
-                      : 'border-l-transparent hover:border-l-blue-500 hover:shadow-md hover:bg-blue-50'
-                      } transition-all duration-200`}
-                  >
-                    <div className="flex items-start">
-                      <input
-                        type="radio"
-                        id={`option${index}`}
-                        name="question"
-                        className="mt-0.5 mr-3"
-                        checked={selectedOption === index}
-                        onChange={() => handleOptionSelect(index)}
-                      />
-                      <span className="text-gray-700">{option.choice_text}</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-
-              {/* Navigation Buttons under question card */}
-              <div className="flex justify-between">
-                <button
-                  className={`px-6 py-2 border border-gray-300 rounded-md text-gray-700 font-medium hover:bg-gray-50 shadow-sm ${currentQuestion === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  onClick={handlePrevious}
-                  disabled={currentQuestion === 1}
-                >
-                  ← Previous
-                </button>
-                {currentQuestion < questions.length ? (
-                  <button
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 shadow-md"
-                    onClick={handleNext}
-                  >
-                    Next →
-                  </button>
-                ) : (
-                  <button
-                    className="px-6 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 shadow-md"
-                    onClick={handleFinishAttempt}
-                  >
-                    Finish
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Questions Sidebar - Right Side */}
-
-        <div className="w-64 p-4 border-l border-gray-200 overflow-y-auto bg-gray-50">
-          <div className="mb-6 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg">
-            <div className="text-white text-center">
-              <p className="text-sm font-light mb-1">Time Remaining</p>
-              <div className="flex justify-center items-baseline">
-                <span className="text-3xl font-bold tracking-tight">
-                  {formatTime(countDownTimer).split(':')[0]}
-                </span>
-                <span className="text-xl mx-1">:</span>
-                <span className="text-3xl font-bold tracking-tight">
-                  {formatTime(countDownTimer).split(':')[1]}
-                </span>
-              </div>
-              <div className="flex justify-between text-xs mt-2 opacity-80">
-                <span>MIN</span>
-                <span>SEC</span>
-              </div>
+            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500 ease-in-out"
+                style={{
+                  width: `${(currentQuestion / questions.length) * 100}%`,
+                  background: `linear-gradient(to right, #34d399, #3b82f6)`,
+                }}
+              ></div>
             </div>
           </div>
 
-          {/* Questions Navigation */}
-          <div className="mb-4">
-            <h3 className="font-semibold text-gray-700 mb-4 text-lg">Questions</h3>
-            <div className="grid grid-cols-3 gap-3">
+          {/* Question */}
+          <h2 className="text-2xl font-bold text-gray-900 leading-snug mb-8">
+            {currentQ.question_text}
+          </h2>
+
+          {/* Options */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {currentQ.choices.map((option, index) => (
+              <label
+                key={option.choiceID}
+                htmlFor={`option${index}`}
+                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ${selectedOption === index
+                    ? "border-blue-500 bg-blue-50 shadow-md"
+                    : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+                  }`}
+              >
+                <input
+                  type="radio"
+                  id={`option${index}`}
+                  name="question"
+                  className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500"
+                  checked={selectedOption === index}
+                  onChange={() => handleOptionSelect(index)}
+                />
+                <span className="text-gray-800 font-medium">{option.choice_text}</span>
+              </label>
+            ))}
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-10">
+            <button
+              className={`px-5 py-2 rounded-lg font-medium border border-gray-300 text-gray-700 shadow-sm transition ${currentQuestion === 1
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-gray-100"
+                }`}
+              onClick={handlePrevious}
+              disabled={currentQuestion === 1}
+            >
+              ← Previous
+            </button>
+
+            {currentQuestion < questions.length ? (
+              <button
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-md hover:bg-blue-700 transition"
+                onClick={handleNext}
+              >
+                Next →
+              </button>
+            ) : (
+              <button
+                className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium shadow-md hover:bg-green-700 transition"
+                onClick={handleFinishAttempt}
+              >
+                Finish
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Right Section - Sidebar Card */}
+        <div className="w-72 h-[680px] bg-white rounded-xl shadow-lg flex flex-col p-4">
+          {/* Timer Card */}
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white shadow-md mb-4">
+            <p className="text-sm font-light flex items-center justify-center gap-1 mb-1">
+              ⏳ Time Remaining
+            </p>
+            <div className="flex justify-center items-center text-2xl font-bold tracking-tight">
+              {formatTime(countDownTimer)}
+            </div>
+          </div>
+
+          {/* Divider Line */}
+          <div className="border-t border-gray-200 my-4"></div>
+
+          {/* Navigation Section */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="grid grid-cols-5 gap-3">
               {questions.map((q, index) => {
                 const isCurrent = currentQuestion === index + 1;
                 const isAnswered = answeredQuestions.includes(index + 1);
                 const isSkipped = !isAnswered && currentQuestion > index + 1;
 
-                let baseClasses = "h-12 w-full flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
+                let baseClasses =
+                  "h-10 w-10 flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
 
                 let statusClass = "";
                 if (isCurrent) {
-                  statusClass = "bg-blue-100 border-blue-500 text-blue-700 shadow-md";
+                  statusClass = "bg-blue-500 text-white border-blue-500";
                 } else if (isAnswered) {
-                  statusClass = "bg-green-100 border-green-400 text-green-700";
+                  statusClass = "bg-green-500 text-white border-green-500";
                 } else if (isSkipped) {
-                  statusClass = "bg-red-100 border-red-400 text-red-200"; // V
+                  statusClass = "bg-red-500 text-white border-red-500";
                 } else {
-                  statusClass = "bg-white border-gray-300 text-gray-600 hover:bg-gray-100";
+                  statusClass =
+                    "bg-gray-200 text-gray-700 border-gray-200 hover:bg-gray-300";
                 }
 
                 return (
@@ -483,18 +466,15 @@ export function Questions() {
                     className={`${baseClasses} ${statusClass}`}
                   >
                     {index + 1}
-                    {isSkipped && (
-                      <span className="ml-1 text-yellow-600">!</span> // Add an exclamation mark for skipped questions
-                    )}
                   </button>
                 );
               })}
             </div>
           </div>
         </div>
-
-
       </div>
+
+
     </div>
   );
 }
