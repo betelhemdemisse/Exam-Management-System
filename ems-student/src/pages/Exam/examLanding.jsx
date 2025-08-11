@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-// import PreventInspection from "./securityMeasure/preventInspection";
+ import PreventInspection from "./securityMeasure/preventInspection";
 import examService from "@/service/exam.service";
 import Ems_logo from "../../assets/img/ems_logo.png";
 import Question_mark_vector from "../../assets/img/question_mark_vector.png";
@@ -61,6 +61,7 @@ export function ExamLanding() {
   };
 
   return (
+    <PreventInspection>
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow p-4 flex justify-end items-center max-w-7xl mx-auto rounded-lg">
         <div className="flex items-center gap-3">
@@ -68,6 +69,7 @@ export function ExamLanding() {
             <p className="font-semibold text-sm">{currentUser?.name}</p>
             <p className="text-gray-500 text-xs">{currentUser?.role}</p>
           </div>
+          {currentUser?.gender }
           <img
             src={SampleProfile}
             alt="Profile"
@@ -179,5 +181,6 @@ export function ExamLanding() {
         </div>
       )}
     </div>
+    </PreventInspection>
   );
 }
