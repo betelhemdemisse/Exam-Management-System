@@ -83,20 +83,22 @@ export function ExamLanding() {
         >
           <div className="lg:w-2/3">
             <div className="text-sm uppercase tracking-wide mb-2">
-              Dashboard / My Courses
+              Dashboard / My Exam
             </div>
             <h1 className="text-2xl font-bold mb-4">
-              Advanced Technical Certification
+             Exam Instruction
             </h1>
-            <p className="mb-6 text-sm leading-relaxed">
-              Exam description. Donec ullamcorper nulla non metus auctor
-              fringilla. Cras justo odio, dapibus ac facilisis in, egestas eget
-              quam. Duis mollis, est non commodo luctus, nisi erat porttitor
-              ligula, eget lacinia odio sem nec elit. Donec id elit non mi porta
-              gravida at eget metus.
-            </p>
+            <ol class="list-decimal list-inside">
+  <li>The exam must be completed in one session</li>
+  <li>Close all other applications</li>
+  <li>Use of external resources is prohibited</li>
+  <li>System will auto-submit when time expires</li>
+  <li>Report technical issues immediately</li>
+  <li>The system will automatically submit if you switch tabs or open another application</li>
+</ol>
 
-            <div className="flex flex-wrap gap-8">
+
+            {/* <div className="flex flex-wrap gap-8">
               <div>
                 <p className="font-bold text-lg">#75</p>
                 <span className="text-sm">Exam Questions</span>
@@ -109,12 +111,14 @@ export function ExamLanding() {
                 <p className="font-bold text-lg">80%</p>
                 <span className="text-sm">Passing Score</span>
               </div>
-            </div>
+            </div> */}
           </div>
 
-          <div className="lg:w-1/3 flex justify-center mt-6 lg:mt-0">
-            <img src={Ems_logo} alt="Logo" className="max-h-32 object-contain" />
-          </div>
+         <div className="lg:w-1/3 flex justify-center mt-6 lg:mt-0">
+  <img src={Ems_logo} alt="Logo" className="max-h-48 object-contain" />
+</div>
+
+
         </div>
 
         <div className="w-full max-w-7xl bg-white p-8 rounded-lg shadow-lg flex flex-col lg:flex-row justify-between items-start gap-6 relative">

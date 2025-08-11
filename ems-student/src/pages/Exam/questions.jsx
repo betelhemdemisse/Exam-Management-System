@@ -10,6 +10,7 @@ export function Questions() {
   const [quizTime, setQuizTime] = useState(0);
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showTimeUpModal, setShowTimeUpModal] = useState(false);
   const navigate = useNavigate();
   const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
   const [answeredQuestions, setAnsweredQuestions] = useState([]);
@@ -19,12 +20,10 @@ export function Questions() {
 
   const location = useLocation();
   const createdExam = location.state;  
-  console.log("Exam data from location:", createdExam);
-  const [countDownTimer, setCountDownTimer] = useState(createdExam.duration_minutes * 60 || 0);
+  const [countDownTimer, setCountDownTimer] = useState(createdExam?.duration_minutes*60|| 0 ); 
 
   const [exam, setExam] = useState(createdExam || null);
 
-  // Extract questions array from exam object or empty array
   const questionsArray = exam?.questions || [];
 
   useEffect(() => {
@@ -48,7 +47,7 @@ export function Questions() {
       setCountDownTimer((prev) => {
         if (prev <= 1) {
           clearInterval(countdownTimerRef.current);
-          handleFinishAttempt();
+          handleTimeUp();
           return 0;
         }
         return prev - 1;
@@ -84,6 +83,11 @@ export function Questions() {
     };
   }, []);
 
+  const handleTimeUp = async () => {
+    setShowTimeUpModal(true);
+    await confirmFinish();
+  };
+
   const handleContinueExam = () => {
     const elem = document.documentElement;
     if (elem.requestFullscreen) {
@@ -98,25 +102,38 @@ export function Questions() {
     navigate("/sign-in");
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (selectedOption !== null) {
       try {
         const currentExamId = localStorage.getItem("currentExamId");
         const currentQ = questionsArray[currentQuestion - 1];
-        const answerData = {
-          questionID: currentQ.questionID,
-          choiceID: currentQ.choices[selectedOption].choiceID,
-        };
-        await ExamService.saveAnswer(currentExamId, answerData);
+        const savedAnswers = JSON.parse(localStorage.getItem("savedAnswers") || "{}");
+
+        if (!savedAnswers[currentExamId]) savedAnswers[currentExamId] = {};
+
+        savedAnswers[currentExamId][currentQ.questionID] = currentQ.choices[selectedOption].choiceID;
+
+        localStorage.setItem("savedAnswers", JSON.stringify(savedAnswers));
       } catch (error) {
-        console.error("Error saving draft answer:", error);
+        console.error("Error saving answer locally:", error);
       }
     }
 
     if (currentQuestion < questionsArray.length) {
       const nextQuestionNumber = currentQuestion + 1;
       setCurrentQuestion(nextQuestionNumber);
-      setSelectedOption(selectedOptions[nextQuestionNumber] ?? null);
+
+      try {
+        const currentExamId = localStorage.getItem("currentExamId");
+        const savedAnswers = JSON.parse(localStorage.getItem("savedAnswers") || "{}");
+        const nextQ = questionsArray[nextQuestionNumber - 1];
+        const savedChoiceID = savedAnswers?.[currentExamId]?.[nextQ.questionID];
+
+        const savedOptionIndex = nextQ.choices.findIndex(c => c.choiceID === savedChoiceID);
+        setSelectedOption(savedOptionIndex !== -1 ? savedOptionIndex : null);
+      } catch {
+        setSelectedOption(null);
+      }
     }
   };
 
@@ -155,25 +172,52 @@ export function Questions() {
     }
   };
 
+  const saveCurrentAnswer = () => {
+    if (selectedOption !== null) {
+      try {
+        const currentExamId = localStorage.getItem("currentExamId");
+        const currentQ = questionsArray[currentQuestion - 1];
+        const savedAnswers = JSON.parse(localStorage.getItem("savedAnswers") || "{}");
+
+        if (!savedAnswers[currentExamId]) savedAnswers[currentExamId] = {};
+
+        savedAnswers[currentExamId][currentQ.exam_questionID] = currentQ.choices[selectedOption].choiceID;
+
+        localStorage.setItem("savedAnswers", JSON.stringify(savedAnswers));
+      } catch (error) {
+        console.error("Error saving answer locally:", error);
+      }
+    }
+  };
+
   const confirmFinish = async () => {
     try {
+      saveCurrentAnswer();
+
       const currentExamId = localStorage.getItem("currentExamId");
-      if (selectedOption !== null) {
-        const currentQ = questionsArray[currentQuestion - 1];
-        const answerData = {
-          questionID: currentQ.questionID,
-          choiceID: currentQ.choices[selectedOption].choiceID,
-        };
-        await ExamService.saveAnswer(currentExamId, answerData);
-      }
-      await ExamService.submitExam(currentExamId);
+      const savedAnswers = JSON.parse(localStorage.getItem("savedAnswers") || "{}");
+
+      const examAnswersObj = savedAnswers[currentExamId] || {};
+
+      const answersArray = Object.entries(examAnswersObj).map(([exam_questionID, choiceID]) => ({
+        exam_questionID,
+        choiceID,
+      }));
+
+      const payload = {
+        examID: currentExamId,
+        answers: answersArray,
+      };
+      console.log("payload", payload);
+
+      await ExamService.submitExam(payload);
+
       clearInterval(countdownTimerRef.current);
       clearInterval(quizTimerRef.current);
       setShowFinishConfirmation(false);
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Error submitting exam:", error);
-      alert("There was an error submitting your exam. Please try again.");
     }
   };
 
@@ -245,6 +289,27 @@ export function Questions() {
         </div>
       )}
 
+      {/* Time Up Modal */}
+      {showTimeUpModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-xl font-semibold mb-4">Time's Up!</h3>
+            <p className="text-gray-600 mb-6">
+              The exam time has ended. Your answers have been automatically submitted.
+            </p>
+            <div className="flex justify-end">
+              <Link to="/sign-in">
+                <button
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                >
+                  Continue
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Finish Confirmation Modal */}
       {showFinishConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -299,136 +364,134 @@ export function Questions() {
         </div>
       )}
 
-      <div className="flex min-h-screen overflow-hidden bg-gray-50 p-6 gap-4 items-start">
-        {/* Left Section - Question Card */}
-        <div className="flex-1 h-[680px] bg-white rounded-xl shadow-lg p-10 flex flex-col justify-between">
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex justify-between text-sm text-gray-600 mb-2">
-              <span>
-                Question {currentQuestion} of {questionsArray.length}
-              </span>
-              <span>
-                {Math.round((currentQuestion / questionsArray.length) * 100)}% Complete
-              </span>
+      {!showTimeUpModal && (
+        <div className="flex min-h-screen overflow-hidden bg-gray-50 p-6 gap-4 items-start">
+          {/* Left Section - Question Card */}
+          <div className="flex-1 h-[680px] bg-white rounded-xl shadow-lg p-10 flex flex-col justify-between">
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <span>
+                  Question {currentQuestion} of {questionsArray.length}
+                </span>
+                <span>
+                  {Math.round((currentQuestion / questionsArray.length) * 100)}% Complete
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500 ease-in-out"
+                  style={{
+                    width: `${(currentQuestion / questionsArray.length) * 100}%`,
+                    background: `linear-gradient(to right, #34d399, #3b82f6)`,
+                  }}
+                ></div>
+              </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500 ease-in-out"
-                style={{
-                  width: `${(currentQuestion / questionsArray.length) * 100}%`,
-                  background: `linear-gradient(to right, #34d399, #3b82f6)`,
-                }}
-              ></div>
+
+            {/* Question */}
+            <h2 className="text-2xl font-bold text-gray-900 leading-snug mb-8">
+              {currentQ.question_text}
+            </h2>
+
+            {/* Options */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {currentQ.choices.map((option, index) => (
+                <label
+                  key={option.choiceID}
+                  htmlFor={`option${index}`}
+                  className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                    selectedOption === index
+                      ? "border-blue-500 bg-blue-50 shadow-md"
+                      : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    id={`option${index}`}
+                    name="question"
+                    className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500"
+                    checked={selectedOption === index}
+                    onChange={() => handleOptionSelect(index)}
+                  />
+                  <span className="text-gray-800 font-medium">{option.choice_text}</span>
+                </label>
+              ))}
             </div>
-          </div>
 
-          {/* Question */}
-          <h2 className="text-2xl font-bold text-gray-900 leading-snug mb-8">
-            {currentQ.question_text}
-          </h2>
-
-          {/* Options */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {currentQ.choices.map((option, index) => (
-              <label
-                key={option.choiceID}
-                htmlFor={`option${index}`}
-                className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                  selectedOption === index
-                    ? "border-blue-500 bg-blue-50 shadow-md"
-                    : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-10">
+              <button
+                className={`px-5 py-2 rounded-lg font-medium border border-gray-300 text-gray-700 shadow-sm transition ${
+                  currentQuestion === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
                 }`}
+                onClick={handlePrevious}
+                disabled={currentQuestion === 1}
               >
-                <input
-                  type="radio"
-                  id={`option${index}`}
-                  name="question"
-                  className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500"
-                  checked={selectedOption === index}
-                  onChange={() => handleOptionSelect(index)}
-                />
-                <span className="text-gray-800 font-medium">{option.choice_text}</span>
-              </label>
-            ))}
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-10">
-            <button
-              className={`px-5 py-2 rounded-lg font-medium border border-gray-300 text-gray-700 shadow-sm transition ${
-                currentQuestion === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
-              }`}
-              onClick={handlePrevious}
-              disabled={currentQuestion === 1}
-            >
-              ← Previous
-            </button>
-
-            {currentQuestion < questionsArray.length ? (
-              <button
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-md hover:bg-blue-700 transition"
-                onClick={handleNext}
-              >
-                Next →
+                ← Previous
               </button>
-            ) : (
-              <button
-                className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium shadow-md hover:bg-green-700 transition"
-                onClick={handleFinishAttempt}
-              >
-                Finish
-              </button>
-            )}
+
+              {currentQuestion < questionsArray.length ? (
+                <button
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-md hover:bg-blue-700 transition"
+                  onClick={handleNext}
+                >
+                  Next →
+                </button>
+              ) : (
+                <button
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium shadow-md hover:bg-green-700 transition"
+                  onClick={handleFinishAttempt}
+                >
+                  Finish
+                </button>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Right Section - Sidebar Card */}
-        <div className="w-72 h-[680px] bg-white rounded-xl shadow-lg flex flex-col p-4">
-          {/* Timer Card */}
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white shadow-md mb-4">
-            <p className="text-sm font-light flex items-center justify-center gap-1 mb-1">⏳ Time Remaining</p>
-            <div className="flex justify-center items-center text-2xl font-bold tracking-tight">{formatTime(countDownTimer)}</div>
-          </div>
+          <div className="w-72 h-[680px] bg-white rounded-xl shadow-lg flex flex-col p-4">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white shadow-md mb-4">
+              <p className="text-sm font-light flex items-center justify-center gap-1 mb-1">⏳ Time Remaining</p>
+              <div className="flex justify-center items-center text-2xl font-bold tracking-tight">{formatTime(countDownTimer)}</div>
+            </div>
 
-          {/* Divider Line */}
-          <div className="border-t border-gray-200 my-4"></div>
+            <div className="border-t border-gray-200 my-4"></div>
 
-          {/* Navigation Section */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="grid grid-cols-5 gap-3">
-              {questionsArray.map((q, index) => {
-                const isCurrent = currentQuestion === index + 1;
-                const isAnswered = answeredQuestions.includes(index + 1);
-                const isSkipped = !isAnswered && currentQuestion > index + 1;
+            <div className="flex-1 overflow-y-auto">
+              <div className="grid grid-cols-5 gap-3">
+                {questionsArray.map((q, index) => {
+                  const isCurrent = currentQuestion === index + 1;
+                  const isAnswered = answeredQuestions.includes(index + 1);
+                  const isSkipped = !isAnswered && currentQuestion > index + 1;
 
-                let baseClasses = "h-10 w-10 flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
-                let statusClass = "";
+                  let baseClasses = "h-10 w-10 flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
+                  let statusClass = "";
 
-                if (isCurrent) {
-                  statusClass = "bg-blue-500 text-white border-blue-500";
-                } else if (isAnswered) {
-                  statusClass = "bg-green-500 text-white border-green-500";
-                } else if (isSkipped) {
-                  statusClass = "bg-red-500 text-white border-red-500";
-                } else {
-                  statusClass = "bg-gray-200 text-gray-700 border-gray-200 hover:bg-gray-300";
-                }
+                  if (isCurrent) {
+                    statusClass = "bg-blue-500 text-white border-blue-500";
+                  } else if (isAnswered) {
+                    statusClass = "bg-green-500 text-white border-green-500";
+                  } else if (isSkipped) {
+                    statusClass = "bg-red-500 text-white border-red-500";
+                  } else {
+                    statusClass = "bg-gray-200 text-gray-700 border-gray-200 hover:bg-gray-300";
+                  }
 
-                return (
-                  <button
-                    key={q.questionID || index}
-                    onClick={() => handleQuestionNavigation(index + 1)}
-                    className={`${baseClasses} ${statusClass}`}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={q.questionID || index}
+                      onClick={() => handleQuestionNavigation(index + 1)}
+                      className={`${baseClasses} ${statusClass}`}
+                    >
+                      {index + 1}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
