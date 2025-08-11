@@ -9,7 +9,7 @@ import {
   Button,
   Checkbox
 } from "@material-tailwind/react";
-import { Snackbar, Alert } from "@mui/material";
+import { Snackbar, Alert, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import examconfigurationService from "@/service/examconfiguration.service";
 
 export default function CreateExamConfigModal({ open, onClose, onSave }) {
@@ -18,7 +18,8 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
     pass_mark: "",
     duration_minutes: "",
     allow_retake: false,
-    show_timer_warning: false
+    show_timer_warning: false,
+    exam_type: "", // no default
   });
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +31,7 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
   });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked } = e.target || {};
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value
@@ -64,6 +65,7 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
         duration_minutes: "",
         allow_retake: false,
         show_timer_warning: false,
+        exam_type: "",
       });
     } catch (error) {
       console.error("Failed to create configuration:", error);
@@ -105,6 +107,26 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
               value={formData.duration_minutes}
               onChange={handleChange}
             />
+
+            {/* Exam Type Dropdown */}
+            <FormControl fullWidth>
+              <InputLabel>Exam Type</InputLabel>
+              <Select
+                name="exam_type"
+                value={formData.exam_type}
+                onChange={handleChange}
+                MenuProps={{
+                  disablePortal: true, // prevents it from rendering outside but keeps positioning correct
+                  style: { zIndex: 9999 } // make sure it's above the modal
+                }}
+              >
+                <MenuItem value="">Select Exam Type</MenuItem>
+                <MenuItem value="experienced">Experienced</MenuItem>
+                <MenuItem value="junior">Junior</MenuItem>
+              </Select>
+
+            </FormControl>
+
             <Checkbox
               label="Allow Retake"
               name="allow_retake"
@@ -127,7 +149,7 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
             variant="gradient"
             color="green"
             onClick={handleCreate}
-            disabled={loading}
+            disabled={loading || !formData.exam_type} // disable if no exam_type
           >
             {loading ? "Saving..." : "Save"}
           </Button>

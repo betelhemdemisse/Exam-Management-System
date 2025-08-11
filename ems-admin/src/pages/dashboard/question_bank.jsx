@@ -12,6 +12,8 @@ import {
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 import * as XLSX from "xlsx";
 import QuestionService from "../../service/question.service";
+import CreateQuestionModal from "../dashboard/question modal/CreateQuestionModal"; // new import
+import EditQuestionModal from "../dashboard/question modal/EditQuestionModal";
 
 export function QuestionBank() {
     const fileInputRef = useRef(null);
@@ -19,6 +21,9 @@ export function QuestionBank() {
     const [questions, setQuestions] = useState([]); // main question list
     const [newQuestions, setNewQuestions] = useState([]); // import preview
     const [showDialog, setShowDialog] = useState(false);
+    const [createModalOpen, setCreateModalOpen] = useState(false); // new
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedQuestionId, setSelectedQuestionId] = useState(null);
 
     const toggleDropdown = (index) => {
         setOpenIndex((prev) => (prev === index ? null : index));
@@ -39,7 +44,7 @@ export function QuestionBank() {
                             const matchedChoice = q.choices.find(c => c.choiceID === ans.choiceID);
                             return matchedChoice ? matchedChoice.label : null;
                         })
-                        .filter(Boolean); 
+                        .filter(Boolean);
 
                     return {
                         ...q,
@@ -120,11 +125,15 @@ export function QuestionBank() {
             />
 
             {/* Import button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+                <Button size="sm" color="green" onClick={() => setCreateModalOpen(true)}>
+                    + Create Question
+                </Button>
                 <Button size="sm" color="blue" onClick={handleImportClick}>
                     Import
                 </Button>
             </div>
+
 
             {/* Questions table */}
             <Card shadow={false} className="border border-blue-gray-100">
@@ -132,7 +141,7 @@ export function QuestionBank() {
                     <table className="w-full min-w-[700px] text-left">
                         <thead>
                             <tr className="bg-blue-gray-50">
-                                {["NO", "Question", "Type", "Action"].map((header) => (
+                                {["NO", "Question", "Type", "Option Action", "Action"].map((header) => (
                                     <th key={header} className="p-4">
                                         <Typography
                                             variant="small"
@@ -181,6 +190,20 @@ export function QuestionBank() {
                                                         <ChevronDownIcon className="w-4 h-4" />
                                                     </>
                                                 )}
+                                            </Button>
+                                        </td>
+
+                                        <td className="p-4 align-top">
+                                            <Button
+                                                variant="text"
+                                                size="sm"
+                                                color="blue"
+                                                onClick={() => {
+                                                    setSelectedQuestionId(q.id);
+                                                    setEditModalOpen(true);
+                                                }}
+                                            >
+                                                Edit
                                             </Button>
                                         </td>
                                     </tr>
@@ -251,6 +274,41 @@ export function QuestionBank() {
                     </Button>
                 </DialogFooter>
             </Dialog>
+            <CreateQuestionModal
+                open={createModalOpen}
+                onClose={() => setCreateModalOpen(false)}
+                onCreated={(newQ) =>
+                    setQuestions((prev) => [
+                        ...prev,
+                        {
+                            ...newQ,
+                            correct_choice_labels:
+                                newQ.correctAnswers?.map((a) => a.label).join(", ") ||
+                                (newQ.choices?.filter((c) => c.isCorrect).map((c) => c.label).join(", ")) ||
+                                "",
+                        },
+                    ])
+                }
+
+            />
+            <EditQuestionModal
+                open={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                questionId={selectedQuestionId}
+                onUpdated={(updatedQ) => {
+                    setQuestions(prev =>
+                        prev.map(q => q.id === updatedQ.id
+                            ? {
+                                ...updatedQ,
+                                correct_choice_labels: updatedQ.correct_choice_labels.join(", ")
+                            }
+                            : q
+                        )
+                    );
+                }}
+            />
+
+
         </div>
     );
 }

@@ -1,13 +1,11 @@
 import axios from 'axios';
 import BASE_URL from '../../config';
 
-// Create an axios instance
 const apiService = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // ✅ Corrected spelling
+  withCredentials: true,
 });
 
-// Optional: attach token if you use Bearer tokens (e.g., with Sanctum)
 apiService.interceptors.request.use((config) => {
   const token = localStorage.getItem('userToken');
   if (token) {
@@ -17,28 +15,84 @@ apiService.interceptors.request.use((config) => {
 });
 
 class UserService {
-  async importUsers(file) {
-    const formData = new FormData();
-    formData.append('file', file);
-
+  // Import users from a parsed JSON array
+  async importUsers(usersArray) {
     try {
-      const response = await apiService.post('/users/import', formData, {
+      const response = await apiService.post('/users/import', usersArray, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
         },
       });
-      console.log("response",response)
       return response.data;
     } catch (error) {
       throw error;
     }
   }
-  async getUsers(){
+
+  // Get all users
+  async getUsers() {
     try {
       const response = await apiService.get('/users');
       return response.data;
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  }
+
+  // Export users as CSV
+  async exportUsers() {
+    try {
+      const response = await apiService.get('/users/export', {
+        responseType: 'blob',
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting users:', error);
+      throw error;
+    }
+  }
+
+  // Create a new user
+  async createUser(userData) {
+    try {
+      const response = await apiService.post('/users', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
+  // Get a user by ID
+  async getUserById(id) {
+    try {
+      const response = await apiService.get(`/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching user with ID ${id}:`, error);
+      throw error;
+    }
+  }
+
+  // Update a user by ID
+  async updateUser(id, userData) {
+    try {
+      const response = await apiService.patch(`/users/${id}`, userData);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating user with ID ${id}:`, error);
+      throw error;
+    }
+  }
+
+  // Delete a user by ID
+  async deleteUser(id) {
+    try {
+      const response = await apiService.delete(`/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting user with ID ${id}:`, error);
       throw error;
     }
   }

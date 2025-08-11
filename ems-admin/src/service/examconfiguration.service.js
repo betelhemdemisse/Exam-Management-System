@@ -19,7 +19,7 @@ apiService.interceptors.request.use((config) => {
 class ExamConfigurationService {
   async createExamConfiguration(examConfigData) {
     try {
-      const response = await apiService.post('/exam-configurations', examConfigData);
+      const response = await apiService.post('/exams/config', examConfigData);
       return response.data;
     } catch (error) {
       console.error('Error creating exam configuration:', error);
@@ -57,15 +57,16 @@ class ExamConfigurationService {
     }
   }
 
-  async deleteExamConfiguration(id) {
+  async deleteExamConfiguration(configID) {
     try {
-      const response = await apiService.delete(`/exam-configurations/${id}`);
+      const response = await apiService.delete(`/exams/config/${configID}`);
       return response.data;
     } catch (error) {
-      console.error(`Error deleting exam configuration with ID ${id}:`, error);
+      console.error(`Error deleting exam configuration with ID ${configID}:`, error);
       throw error;
     }
   }
+
 }
 
 export default new ExamConfigurationService();
