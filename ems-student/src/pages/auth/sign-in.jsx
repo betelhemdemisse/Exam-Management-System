@@ -119,17 +119,7 @@ const handleLogin = async (e) => {
             </Typography>
           </div>
 
-          {!useLoginCode && (
-            <Typography
-              variant="paragraph"
-              className="text-center text-blue-gray-500 font-medium mt-4"
-            >
-              Not registered?
-              <Link to="/sign-up" className="text-gray-900 ml-1">
-                Create account
-              </Link>
-            </Typography>
-          )}
+       
         </form>
       </div>
     </section>
