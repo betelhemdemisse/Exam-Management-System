@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import ExamService from "../../service/exam.service";
+ import PreventInspection from "./securityMeasure/preventInspection";
 
 export function Questions() {
   const [showContent, setShowContent] = useState(false);
@@ -241,6 +242,7 @@ export function Questions() {
 
   if (!showContent) {
     return (
+      <PreventInspection>
       <div className="h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">Get Ready!</h1>
@@ -252,6 +254,7 @@ export function Questions() {
           </div>
         </div>
       </div>
+      </PreventInspection>
     );
   }
 
@@ -262,6 +265,7 @@ export function Questions() {
   }
 
   return (
+    <PreventInspection>
     <div className="h-screen bg-white flex flex-col">
       {/* Fullscreen Warning Modal */}
       {showFullscreenWarning && (
@@ -493,6 +497,7 @@ export function Questions() {
         </div>
       )}
     </div>
+    </PreventInspection>
   );
 }
 
