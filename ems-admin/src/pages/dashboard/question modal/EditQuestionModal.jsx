@@ -25,14 +25,15 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
     useEffect(() => {
         if (open && questionId) {
             setLoading(true);
+
             QuestionService.getQuestionById(questionId)
                 .then((data) => {
+
                     setQuestionText(data.question_text);
                     setCategory(data.category || "");
                     setDifficulty(data.difficulty || "Easy");
                     setQuestionType(data.question_type || "junior");
 
-                    // Ensure correct answer flags
                     const correctLabels = data.correctAnswers?.map(a => a.label) || [];
                     const formattedChoices = data.choices?.map((c) => ({
                         label: c.label,
@@ -40,12 +41,18 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
                         isCorrect: correctLabels.includes(c.label)
                     })) || [];
 
+
                     setChoices(formattedChoices);
                 })
-                .catch((err) => console.error("Failed to fetch question:", err))
-                .finally(() => setLoading(false));
+                .catch((err) => {
+                    console.error("[EditQuestionModal] Failed to fetch question:", err);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
         }
     }, [open, questionId]);
+
 
     const addChoice = () => {
         const nextLabel = String.fromCharCode(65 + choices.length);

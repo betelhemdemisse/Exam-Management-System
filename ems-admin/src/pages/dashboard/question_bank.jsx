@@ -37,7 +37,6 @@ export function QuestionBank() {
         const fetchQuestions = async () => {
             try {
                 const data = await QuestionService.getQuestions();
-                console.log("Fetched questions:", data);
                 const processedQuestions = data.map(q => {
                     const correctLabels = q.correctAnswers
                         ?.map(ans => {
@@ -199,7 +198,8 @@ export function QuestionBank() {
                                                 size="sm"
                                                 color="blue"
                                                 onClick={() => {
-                                                    setSelectedQuestionId(q.id);
+
+                                                    setSelectedQuestionId(q.questionID);
                                                     setEditModalOpen(true);
                                                 }}
                                             >
