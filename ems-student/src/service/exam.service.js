@@ -71,7 +71,7 @@ class ExamService {
   async saveAnswer(examID, answerData) {
     try {
       const response = await apiService.post(
-        `/api/exams/${examID}/answer`,
+        `/exams/${examID}/answer`,
         answerData
       );
       return response.data;
@@ -84,7 +84,7 @@ class ExamService {
   // Get exam progress and time left
   async getExamProgress(examID) {
     try {
-      const response = await apiService.get(`/api/exams/${examID}/progress`);
+      const response = await apiService.get(`/exams/${examID}/progress`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching progress for exam ${examID}:`, error);
@@ -95,7 +95,7 @@ class ExamService {
   // Submit the exam
   async submitExam(examID) {
     try {
-      const response = await apiService.post(`/api/exams/${examID}/submit`);
+      const response = await apiService.post(`/exams/${examID}/submit`);
       return response.data;
     } catch (error) {
       console.error(`Error submitting exam ${examID}:`, error);
@@ -106,7 +106,7 @@ class ExamService {
   // Get result for a submitted exam
   async getExamResult(examID) {
     try {
-      const response = await apiService.get(`/api/exams/${examID}/result`);
+      const response = await apiService.get(`/exams/${examID}/result`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching result for exam ${examID}:`, error);

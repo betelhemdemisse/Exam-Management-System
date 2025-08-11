@@ -13,33 +13,37 @@ export function Questions() {
   const [quizTime, setQuizTime] = useState(0);
   const [showFinishConfirmation, setShowFinishConfirmation] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [countDownTimer, setCountDownTimer] = useState(15 * 60); 
+  const [countDownTimer, setCountDownTimer] = useState(15 * 60);
   const navigate = useNavigate();
   const [showFullscreenWarning, setShowFullscreenWarning] = useState(false);
-const [answeredQuestions, setAnsweredQuestions] = useState([]);
+  const [answeredQuestions, setAnsweredQuestions] = useState([]);
   const countdownTimerRef = useRef(null);
   const quizTimerRef = useRef(null);
-  const [questions,setQuestions]= useState();
-const getExam = async () => {
-  try {
-        const currentExamId = localStorage.getItem("currentExamId");
-        console.log("currentExamId",currentExamId)
-    const response = await ExamService.getExamById(currentExamId);
-    console.log("response", response);
+  const [questions, setQuestions] = useState();
+  const [selectedOptions, setSelectedOptions] = useState({});
 
-    const questions = response
-    console.log("questions array", questions);
-   setQuestions(questions.questions)
+  const getExam = async () => {
+    try {
+      const currentExamId = localStorage.getItem("currentExamId");
+      console.log("currentExamId", currentExamId)
+      const response = await ExamService.getExamById(currentExamId);
+      console.log("response", response);
 
-  } catch (error) {
-    console.error("Error fetching exam:", error);
-    return [];
-  }
-};
+      const questions = response
+      console.log("questions array", questions);
+      setQuestions(questions.questions)
 
-useEffect(()=>{
-  getExam();
-},[])
+    } catch (error) {
+      console.error("Error fetching exam:", error);
+      return [];
+    }
+  };
+
+  
+
+  useEffect(() => {
+    getExam();
+  }, [])
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -125,53 +129,92 @@ useEffect(()=>{
     navigate("/sign-in");
   };
 
-const handleNext = () => {
-  if (currentQuestion < questions.length && selectedOption === null && !answeredQuestions.includes(currentQuestion)) {
-  }
-  
-  if (currentQuestion < questions.length) {
-    setCurrentQuestion(currentQuestion + 1);
-    setSelectedOption(null);
-  }
-};
+  const handleNext = async () => {
+    if (selectedOption !== null) {
+      try {
+        const currentExamId = localStorage.getItem("currentExamId");
+        const currentQ = questions[currentQuestion - 1];
+        const answerData = {
+          questionID: currentQ.questionID,
+          choiceID: currentQ.choices[selectedOption].choiceID
+        };
+        await ExamService.saveAnswer(currentExamId, answerData);
+      } catch (error) {
+        console.error("Error saving draft answer:", error);
+      }
+    }
+
+    if (currentQuestion < questions.length) {
+      const nextQuestionNumber = currentQuestion + 1;
+      setCurrentQuestion(nextQuestionNumber);
+      setSelectedOption(selectedOptions[nextQuestionNumber] ?? null);
+    }
+  };
 
 
   const handlePrevious = () => {
     if (currentQuestion > 1) {
-      setCurrentQuestion(currentQuestion - 1);
-      setSelectedOption(null);
+      const prevQuestionNumber = currentQuestion - 1;
+      setCurrentQuestion(prevQuestionNumber);
+      setSelectedOption(selectedOptions[prevQuestionNumber] ?? null);
     }
   };
-const handleOptionSelect = (optionIndex) => {
-  setSelectedOption(optionIndex);
-  // Mark current question as answered
-  if (!answeredQuestions.includes(currentQuestion)) {
-    setAnsweredQuestions([...answeredQuestions, currentQuestion]);
-  }
-};
+  const handleOptionSelect = (optionIndex) => {
+    setSelectedOption(optionIndex);
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [currentQuestion]: optionIndex
+    }));
+    if (!answeredQuestions.includes(currentQuestion)) {
+      setAnsweredQuestions([...answeredQuestions, currentQuestion]);
+    }
+  };
+
   const handleQuestionNavigation = (questionNumber) => {
     setCurrentQuestion(questionNumber);
-    setSelectedOption(null);
+    setSelectedOption(selectedOptions[questionNumber] ?? null);
   };
 
-const handleFinishAttempt = () => {
-  const unansweredCount = questions.length - answeredQuestions.length;
-  if (unansweredCount > 0) {
-    if (window.confirm(`You have ${unansweredCount} unanswered questions. Are you sure you want to finish?`)) {
+  const handleFinishAttempt = () => {
+    const unansweredCount = questions.length - answeredQuestions.length;
+    if (unansweredCount > 0) {
+      if (window.confirm(`You have ${unansweredCount} unanswered questions. Are you sure you want to finish?`)) {
+        setShowFinishConfirmation(true);
+      }
+    } else {
       setShowFinishConfirmation(true);
     }
-  } else {
-    setShowFinishConfirmation(true);
-  }
-};
-  const confirmFinish = () => {
-    // Clear both timers when exam is finished
-    clearInterval(countdownTimerRef.current);
-    clearInterval(quizTimerRef.current);
-
-    setShowFinishConfirmation(false);
-    setShowSuccessModal(true);
   };
+  const confirmFinish = async () => {
+    try {
+      const currentExamId = localStorage.getItem("currentExamId");
+
+      // Save last answer if needed
+      if (selectedOption !== null) {
+        const currentQ = questions[currentQuestion - 1];
+        const answerData = {
+          questionID: currentQ.questionID,
+          choiceID: currentQ.choices[selectedOption].choiceID
+        };
+        await ExamService.saveAnswer(currentExamId, answerData);
+      }
+
+      // Submit the exam
+      await ExamService.submitExam(currentExamId);
+
+      // Stop timers
+      clearInterval(countdownTimerRef.current);
+      clearInterval(quizTimerRef.current);
+
+      setShowFinishConfirmation(false);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Error submitting exam:", error);
+      alert("There was an error submitting your exam. Please try again.");
+    }
+  };
+
+
 
   const cancelFinish = () => {
     setShowFinishConfirmation(false);
@@ -192,10 +235,10 @@ const handleFinishAttempt = () => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-console.log("questions",questions)
+  console.log("questions", questions)
   if (!showContent) {
     return (
-      <PreventInspection>
+      // <PreventInspection>
       <div className="h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">Get Ready!</h1>
@@ -207,7 +250,7 @@ console.log("questions",questions)
           </div>
         </div>
       </div>
-      </PreventInspection>
+      // </PreventInspection>
     );
   }
 
@@ -299,40 +342,40 @@ console.log("questions",questions)
         </div>
       )}
 
-     <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
-<div className="bg-white shadow-sm p-4 sticky top-0 z-10">
-  <div className="w-full flex justify-between items-start">
-    {/* Left side - Progress bar section */}
-    <div className="flex-1 max-w-6xl">
-      <div className="flex justify-between text-sm text-gray-600 mb-1">
-        <span>Question {currentQuestion} of {questions.length}</span>
-        <span>{Math.round(progressPercentage)}% Complete</span>
-      </div>
+      <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
+        <div className="bg-white shadow-sm p-4 sticky top-0 z-10">
+          <div className="w-full flex justify-between items-start">
+            {/* Left side - Progress bar section */}
+            <div className="flex-1 max-w-6xl">
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>Question {currentQuestion} of {questions.length}</span>
+                <span>{Math.round(progressPercentage)}% Complete</span>
+              </div>
 
-      <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner relative overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-500 ease-in-out"
-          style={{
-            width: `${progressPercentage}%`,
-            background: `linear-gradient(to right, #34d399, #3b82f6)`
-          }}
-        ></div>
-        <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-700">
-          {Math.round(progressPercentage)}%
-        </span>
-      </div>
-    </div>
+              <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner relative overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500 ease-in-out"
+                  style={{
+                    width: `${progressPercentage}%`,
+                    background: `linear-gradient(to right, #34d399, #3b82f6)`
+                  }}
+                ></div>
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-700">
+                  {Math.round(progressPercentage)}%
+                </span>
+              </div>
+            </div>
 
-<div className="ml-4 flex-shrink-0 flex items-center">
-  <span className="text-xl font-semibold text-gray-900 tracking-wide">
-    <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-      Johnathan D. Smith
-    </span>
-  </span>
-</div>
-  </div>
-</div>
-</div>
+            <div className="ml-4 flex-shrink-0 flex items-center">
+              <span className="text-xl font-semibold text-gray-900 tracking-wide">
+                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  Johnathan D. Smith
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="flex-1 flex overflow-hidden">
         <div className="flex-1 overflow-auto p-4 mt-24">
@@ -347,11 +390,10 @@ console.log("questions",questions)
                   <label
                     key={option.choiceID}
                     htmlFor={`option${index}`}
-                    className={`block p-4 rounded-lg cursor-pointer border-l-4 ${
-                      selectedOption === index
-                        ? 'border-l-blue-500 bg-blue-50 shadow-md'
-                        : 'border-l-transparent hover:border-l-blue-500 hover:shadow-md hover:bg-blue-50'
-                    } transition-all duration-200`}
+                    className={`block p-4 rounded-lg cursor-pointer border-l-4 ${selectedOption === index
+                      ? 'border-l-blue-500 bg-blue-50 shadow-md'
+                      : 'border-l-transparent hover:border-l-blue-500 hover:shadow-md hover:bg-blue-50'
+                      } transition-all duration-200`}
                   >
                     <div className="flex items-start">
                       <input
@@ -422,39 +464,39 @@ console.log("questions",questions)
           {/* Questions Navigation */}
           <div className="mb-4">
             <h3 className="font-semibold text-gray-700 mb-4 text-lg">Questions</h3>
-          <div className="grid grid-cols-3 gap-3">
-  {questions.map((q, index) => {
-    const isCurrent = currentQuestion === index + 1;
-    const isAnswered = answeredQuestions.includes(index + 1);
-    const isSkipped = !isAnswered && currentQuestion > index + 1; 
+            <div className="grid grid-cols-3 gap-3">
+              {questions.map((q, index) => {
+                const isCurrent = currentQuestion === index + 1;
+                const isAnswered = answeredQuestions.includes(index + 1);
+                const isSkipped = !isAnswered && currentQuestion > index + 1;
 
-    let baseClasses = "h-12 w-full flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
+                let baseClasses = "h-12 w-full flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
 
-    let statusClass = "";
-    if (isCurrent) {
-      statusClass = "bg-blue-100 border-blue-500 text-blue-700 shadow-md";
-    } else if (isAnswered) {
-      statusClass = "bg-green-100 border-green-400 text-green-700";
-    } else if (isSkipped) {
-      statusClass = "bg-red-100 border-red-400 text-red-200"; // V
-    } else {
-      statusClass = "bg-white border-gray-300 text-gray-600 hover:bg-gray-100";
-    }
+                let statusClass = "";
+                if (isCurrent) {
+                  statusClass = "bg-blue-100 border-blue-500 text-blue-700 shadow-md";
+                } else if (isAnswered) {
+                  statusClass = "bg-green-100 border-green-400 text-green-700";
+                } else if (isSkipped) {
+                  statusClass = "bg-red-100 border-red-400 text-red-200"; // V
+                } else {
+                  statusClass = "bg-white border-gray-300 text-gray-600 hover:bg-gray-100";
+                }
 
-    return (
-      <button
-        key={q.id}
-        onClick={() => handleQuestionNavigation(index + 1)}
-        className={`${baseClasses} ${statusClass}`}
-      >
-        {index + 1}
-        {isSkipped && (
-          <span className="ml-1 text-yellow-600">!</span> // Add an exclamation mark for skipped questions
-        )}
-      </button>
-    );
-  })}
-</div>
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => handleQuestionNavigation(index + 1)}
+                    className={`${baseClasses} ${statusClass}`}
+                  >
+                    {index + 1}
+                    {isSkipped && (
+                      <span className="ml-1 text-yellow-600">!</span> // Add an exclamation mark for skipped questions
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
