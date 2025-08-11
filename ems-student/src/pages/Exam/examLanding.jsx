@@ -34,13 +34,9 @@ export function ExamLanding() {
 
   const handleBeginExam = async () => {
     try {
-      const configID = "66ddf678-616d-4108-8b70-efe5b851bce3";
 
-      const createdExam = await examService.createExam({
-        configID,
-        exam_type: "mcq",
-      });
-      console.log("createdExam", createdExam.examID);
+      const createdExam = await examService.createExam();
+      console.log("createdExam", createdExam);
       if (createdExam?.examID) {
         localStorage.setItem("currentExamId", createdExam.examID);
       }
@@ -55,8 +51,8 @@ export function ExamLanding() {
       } else if (elem.msRequestFullscreen) {
         await elem.msRequestFullscreen();
       }
+   navigate("/exam/questions", { state: createdExam });
 
-      navigate("/exam/questions");
     } catch (error) {
       console.error("Failed to start exam:", error);
       setModalMessage("Unable to start the exam. Please try again.");
