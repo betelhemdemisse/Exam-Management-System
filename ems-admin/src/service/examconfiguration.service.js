@@ -29,7 +29,7 @@ class ExamConfigurationService {
 
   async getAllExamConfigurations() {
     try {
-      const response = await apiService.get('/exam-configurations');
+      const response = await apiService.get('/exams/configs');
       return response.data;
     } catch (error) {
       console.error('Error fetching exam configurations:', error);
