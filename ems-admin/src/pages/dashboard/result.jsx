@@ -28,7 +28,6 @@ export function Result() {
         setLoading(true);
         try {
             const data = await ExamReportService.getAllExamResults(appliedFilters);
-            console.log("Fetched result data", data);
             setResults(data || []);
         } catch (error) {
             console.error("Failed to load exam results:", error);
@@ -141,6 +140,7 @@ export function Result() {
                                     "Position",
                                     "Questions",
                                     "Score",
+                                    "Percentage",
                                     "Status",
                                     "Exam Date"
                                 ].map((header) => (
@@ -169,10 +169,12 @@ export function Result() {
                                     <td className="p-4 align-top">{res.position}</td>
                                     <td className="p-4 align-top">{res.totalQuestions}</td>
                                     <td className="p-4 align-top">{res.score}</td>
+                                    <td className="p-4 align-top">{res.percentage}</td>
+
                                     <td
                                         className={`p-4 align-top font-semibold ${res.status.toLowerCase() === "passed"
-                                                ? "text-green-600"
-                                                : "text-red-600"
+                                            ? "text-green-600"
+                                            : "text-red-600"
                                             }`}
                                     >
                                         {res.status}
