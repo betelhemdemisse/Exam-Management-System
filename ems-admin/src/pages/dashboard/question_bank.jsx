@@ -24,7 +24,8 @@ export function QuestionBank() {
     const [createModalOpen, setCreateModalOpen] = useState(false); // new
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [selectedQuestionId, setSelectedQuestionId] = useState(null);
-
+    const rowsPerPage = 10;
+    const [page, setPage] = useState(0);
     const toggleDropdown = (index) => {
         setOpenIndex((prev) => (prev === index ? null : index));
     };
@@ -153,12 +154,15 @@ export function QuestionBank() {
                             </tr>
                         </thead>
                         <tbody>
-                            {questions.map((q, index) => (
+                          
+                                 {questions
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .map((q, index) => (
                                 <React.Fragment key={index}>
                                     <tr className="hover:bg-blue-gray-50 transition-colors">
                                         <td className="p-4 align-top">
                                             <Typography className="text-sm text-blue-gray-700 font-medium">
-                                                {index + 1}
+                                                {page * rowsPerPage + index + 1}
                                             </Typography>
                                         </td>
                                         <td className="p-4 align-top">
@@ -237,6 +241,35 @@ export function QuestionBank() {
                             ))}
                         </tbody>
                     </table>
+                      <div className="flex justify-between items-center mt-4 px-4">
+                      <Button
+                        variant="outlined"
+                        size="sm"
+                        disabled={page === 0}
+                        onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                      >
+                        Previous
+                      </Button>
+                    
+                      <span className="text-sm text-gray-600">
+                        Page {page + 1} of {Math.ceil(questions.length / rowsPerPage)}
+                      </span>
+                    
+                      <Button
+                        variant="outlined"
+                        size="sm"
+                        disabled={page >= Math.ceil(questions.length / rowsPerPage) - 1}
+                        onClick={() =>
+                          setPage((prev) =>
+                            prev < Math.ceil(questions.length / rowsPerPage) - 1
+                              ? prev + 1
+                              : prev
+                          )
+                        }
+                      >
+                        Next
+                      </Button>
+                    </div>
                 </CardBody>
             </Card>
 

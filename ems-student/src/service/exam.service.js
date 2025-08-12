@@ -92,7 +92,11 @@ class ExamService {
  async submitExam(payload) {
   try {
     console.log("payload",payload)
-    const response = await apiService.post(`/exams/submit`, payload);
+    const response = await apiService.post('/exams/submit', payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
     return response.data;
   } catch (error) {
     console.error(`Error submitting exam :`, error);
