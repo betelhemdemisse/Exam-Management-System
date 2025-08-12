@@ -109,7 +109,7 @@ const handleLogin = async (e) => {
 
           <div className="flex items-center justify-between gap-2 mt-6">
             <Typography
-              variant="small"
+              variant="medium"
               className="font-medium text-gray-900 cursor-pointer"
               onClick={() => setUseLoginCode(!useLoginCode)}
             >
@@ -119,17 +119,7 @@ const handleLogin = async (e) => {
             </Typography>
           </div>
 
-          {!useLoginCode && (
-            <Typography
-              variant="paragraph"
-              className="text-center text-blue-gray-500 font-medium mt-4"
-            >
-              Not registered?
-              <Link to="/sign-up" className="text-gray-900 ml-1">
-                Create account
-              </Link>
-            </Typography>
-          )}
+       
         </form>
       </div>
     </section>
