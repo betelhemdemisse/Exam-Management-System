@@ -275,7 +275,9 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
   }
 
   return (
+
      <PreventInspection>
+
     <div className="h-screen bg-white flex flex-col">
       {/* Fullscreen Warning Modal */}
         {showUnansweredWarnModal && (
@@ -533,7 +535,9 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
         </div>
       )}
     </div>
+
      </PreventInspection>
+
   );
 }
 
