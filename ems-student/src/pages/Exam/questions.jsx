@@ -98,11 +98,21 @@ export function Questions() {
   };
 
   const handleExitExam = () => {
+    confirmFinish();  
     clearInterval(countdownTimerRef.current);
     clearInterval(quizTimerRef.current);
-    navigate("/sign-in");
+    setTimeout(()=>{
+      navigate("/sign-in");
+    },1000)
   };
+const handleLogout = ()=>{
 
+  localStorage.removeItem("userToken");
+  localStorage.removeItem("savedAnswers");
+  setTimeout(()=>{
+  navigate("/sign-in");
+  },1000)
+}
   const handleNext = () => {
     if (selectedOption !== null) {
       try {
@@ -112,7 +122,6 @@ export function Questions() {
 
         if (!savedAnswers[currentExamId]) savedAnswers[currentExamId] = {};
 
-  // Store by exam_questionID so submit payload uses the correct identifier
   savedAnswers[currentExamId][currentQ.exam_questionID] = currentQ.choices[selectedOption].choiceID;
 
         localStorage.setItem("savedAnswers", JSON.stringify(savedAnswers));
@@ -162,17 +171,18 @@ export function Questions() {
     setCurrentQuestion(questionNumber);
     setSelectedOption(selectedOptions[questionNumber] ?? null);
   };
-
-  const handleFinishAttempt = () => {
-    const unansweredCount = questionsArray.length - answeredQuestions.length;
-    if (unansweredCount > 0) {
-      if (window.confirm(`You have ${unansweredCount} unanswered questions. Are you sure you want to finish?`)) {
-        setShowFinishConfirmation(true);
-      }
+const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
+ const [unansweredCount, setUnansweredCount] = useState(0);
+   const handleFinishAttempt = () => {
+    const count = questionsArray.length - answeredQuestions.length;
+    setUnansweredCount(count);
+    if (count > 0) {
+      setShowUnansweredWarnModal(true);
     } else {
       setShowFinishConfirmation(true);
     }
   };
+
 
   const saveCurrentAnswer = () => {
     if (selectedOption !== null) {
@@ -259,7 +269,6 @@ export function Questions() {
     );
   }
 
-  // Defensive: check currentQ exists
   const currentQ = questionsArray[currentQuestion - 1];
   if (!currentQ) {
     return <div>Loading questions...</div>;
@@ -267,10 +276,36 @@ export function Questions() {
 
   return (
 
-    // <PreventInspection>
+     <PreventInspection>
 
     <div className="h-screen bg-white flex flex-col">
       {/* Fullscreen Warning Modal */}
+        {showUnansweredWarnModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+            <h2 className="text-lg font-semibold mb-4">Confirm Finish</h2>
+            <p className="mb-6">
+              You have {unansweredCount} unanswered questions. Are you sure you
+              want to finish?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelFinish}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmFinish}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Finish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showFullscreenWarning && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
@@ -305,7 +340,7 @@ export function Questions() {
               The exam time has ended. Your answers have been automatically submitted.
             </p>
             <div className="flex justify-end">
-              <Link to="/sign-in">
+              <Link onClick={handleLogout}>
                 <button
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                 >
@@ -358,7 +393,7 @@ export function Questions() {
                 <p className="text-gray-600 mb-2">Congratulations on completing your exam.</p>
               </div>
               <div className="flex flex-col space-y-3">
-                <Link to="/sign-in">
+                <Link onClick={handleLogout}>
                   <button
                     className="w-full px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all"
                   >
@@ -501,7 +536,8 @@ export function Questions() {
       )}
     </div>
 
-    // {/* </PreventInspection> */}
+     </PreventInspection>
+
   );
 }
 

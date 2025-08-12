@@ -17,11 +17,13 @@ apiService.interceptors.request.use((config) => {
 });
 
 class AuthService {
-  async login(email, password, setToken) {
+
+    async login(email, login_code, setToken) {
+
     try {
-      const response = await apiService.post('/auth/login', {
+      const response = await apiService.post('/auth/login-code', {
         email,
-        password,
+        login_code,
       });
       const token = response?.data?.accessToken;
       if (token) {
