@@ -12,6 +12,7 @@ import * as XLSX from "xlsx";
 import ExamReportService from "../../service/result.service";
 
 export function Result() {
+    const [allResults, setAllResults] = useState([]); // store full data for dropdowns
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
@@ -25,10 +26,15 @@ export function Result() {
     });
     const rowsPerPage = 10;
     const [page, setPage] = useState(0);
+
     const fetchResults = async (appliedFilters = {}) => {
         setLoading(true);
         try {
             const data = await ExamReportService.getAllExamResults(appliedFilters);
+            if (Object.keys(appliedFilters).length === 0) {
+                // store full dataset for dropdowns
+                setAllResults(data || []);
+            }
             setResults(data || []);
         } catch (error) {
             console.error("Failed to load exam results:", error);
@@ -41,11 +47,17 @@ export function Result() {
         fetchResults(filters);
     }, [filters]);
 
+    useEffect(() => {
+        // initial load with no filters to populate dropdowns
+        fetchResults({});
+    }, []);
+
     const handleFilterChange = (field, value) => {
         setFilters((prev) => ({
             ...prev,
             [field]: value || ""
         }));
+        setPage(0); // reset to first page when filter changes
     };
 
     const handleExport = () => {
@@ -56,6 +68,14 @@ export function Result() {
         XLSX.writeFile(wb, "exam_results.xlsx");
     };
 
+    // derive unique values from full dataset
+    const uniqueOrganizations = Array.from(
+        new Set(allResults.map(r => r.company).filter(Boolean))
+    );
+    const uniqueRegions = Array.from(
+        new Set(allResults.map(r => r.region).filter(Boolean))
+    );
+
     if (loading) {
         return <p className="p-4 text-blue-gray-500">Loading results...</p>;
     }
@@ -64,11 +84,20 @@ export function Result() {
         <div className="mt-12 mb-8 flex flex-col gap-6">
             {/* Filters */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-4">
-                <Input
+                
+                {/* Organization Dropdown */}
+                <Select
                     label="Organization"
                     value={filters.company}
-                    onChange={(e) => handleFilterChange("company", e.target.value)}
-                />
+                    onChange={(value) => handleFilterChange("company", value)}
+                >
+                    <Option value="">All</Option>
+                    {uniqueOrganizations.map((org, i) => (
+                        <Option key={i} value={org}>
+                            {org}
+                        </Option>
+                    ))}
+                </Select>
 
                 {/* Gender Dropdown */}
                 <Select
@@ -81,16 +110,30 @@ export function Result() {
                     <Option value="Female">Female</Option>
                 </Select>
 
-                <Input
+                {/* Region Dropdown */}
+                <Select
                     label="Region"
                     value={filters.region}
-                    onChange={(e) => handleFilterChange("region", e.target.value)}
-                />
-                <Input
+                    onChange={(value) => handleFilterChange("region", value)}
+                >
+                    <Option value="">All</Option>
+                    {uniqueRegions.map((reg, i) => (
+                        <Option key={i} value={reg}>
+                            {reg}
+                        </Option>
+                    ))}
+                </Select>
+
+                {/* Type Dropdown */}
+                <Select
                     label="Type"
                     value={filters.type}
-                    onChange={(e) => handleFilterChange("type", e.target.value)}
-                />
+                    onChange={(value) => handleFilterChange("type", value)}
+                >
+                    <Option value="">All</Option>
+                    <Option value="junior">Junior</Option>
+                    <Option value="experienced">Experienced</Option>
+                </Select>
 
                 {/* Status Dropdown */}
                 <Select
@@ -103,6 +146,7 @@ export function Result() {
                     <Option value="failed">Failed</Option>
                 </Select>
 
+                {/* Date Filters */}
                 <Input
                     type="date"
                     label="Start Date"
@@ -157,38 +201,38 @@ export function Result() {
                             </tr>
                         </thead>
                         <tbody>
-                          
-                                  {results
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((res, index) => (
-                                <tr
-                                    key={index}
-                                    className="hover:bg-blue-gray-50 transition-colors"
-                                >
-                                    <td className="p-4 align-top"> {page * rowsPerPage + index + 1}</td>
-                                    <td className="p-4 align-top">{res.studentName}</td>
-                                    <td className="p-4 align-top">{res.gender}</td>
-                                    <td className="p-4 align-top">{res.company}</td>
-                                    <td className="p-4 align-top">{res.region}</td>
-                                    <td className="p-4 align-top">{res.position}</td>
-                                    <td className="p-4 align-top">{res.totalQuestions}</td>
-                                    <td className="p-4 align-top">{res.score}</td>
-                                    <td className="p-4 align-top">{res.percentage}</td>
-
-                                    <td
-                                        className={`p-4 align-top font-semibold ${res.status.toLowerCase() === "passed"
-                                            ? "text-green-600"
-                                            : "text-red-600"
-                                            }`}
+                            {results
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map((res, index) => (
+                                    <tr
+                                        key={index}
+                                        className="hover:bg-blue-gray-50 transition-colors"
                                     >
-                                        {res.status}
-                                    </td>
-
-                                    <td className="p-4 align-top">
-                                        {new Date(res.dateOfExam).toLocaleDateString()}
-                                    </td>
-                                </tr>
-                            ))}
+                                        <td className="p-4 align-top">
+                                            {page * rowsPerPage + index + 1}
+                                        </td>
+                                        <td className="p-4 align-top">{res.studentName}</td>
+                                        <td className="p-4 align-top">{res.gender}</td>
+                                        <td className="p-4 align-top">{res.company}</td>
+                                        <td className="p-4 align-top">{res.region}</td>
+                                        <td className="p-4 align-top">{res.position}</td>
+                                        <td className="p-4 align-top">{res.totalQuestions}</td>
+                                        <td className="p-4 align-top">{res.score}</td>
+                                        <td className="p-4 align-top">{res.percentage}</td>
+                                        <td
+                                            className={`p-4 align-top font-semibold ${
+                                                res.status.toLowerCase() === "passed"
+                                                    ? "text-green-600"
+                                                    : "text-red-600"
+                                            }`}
+                                        >
+                                            {res.status}
+                                        </td>
+                                        <td className="p-4 align-top">
+                                            {new Date(res.dateOfExam).toLocaleDateString()}
+                                        </td>
+                                    </tr>
+                                ))}
                             {results.length === 0 && (
                                 <tr>
                                     <td
@@ -201,33 +245,35 @@ export function Result() {
                             )}
                         </tbody>
                     </table>
-                     <div className="flex justify-between items-center mt-4">
-                                <Button
-                                  variant="outlined"
-                                  size="sm"
-                                  disabled={page === 0}
-                                  onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-                                >
-                                  Previous
-                                </Button>
-                                <span className="text-sm text-gray-600">
-                                  Page {page + 1} of {Math.ceil(results.length / rowsPerPage)}
-                                </span>
-                                <Button
-                                  variant="outlined"
-                                  size="sm"
-                                  disabled={page >= Math.ceil(results.length / rowsPerPage) - 1}
-                                  onClick={() =>
-                                    setPage((prev) =>
-                                      prev < Math.ceil(results.length / rowsPerPage) - 1
+
+                    {/* Pagination */}
+                    <div className="flex justify-between items-center mt-4">
+                        <Button
+                            variant="outlined"
+                            size="sm"
+                            disabled={page === 0}
+                            onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                        >
+                            Previous
+                        </Button>
+                        <span className="text-sm text-gray-600">
+                            Page {page + 1} of {Math.ceil(results.length / rowsPerPage)}
+                        </span>
+                        <Button
+                            variant="outlined"
+                            size="sm"
+                            disabled={page >= Math.ceil(results.length / rowsPerPage) - 1}
+                            onClick={() =>
+                                setPage((prev) =>
+                                    prev < Math.ceil(results.length / rowsPerPage) - 1
                                         ? prev + 1
                                         : prev
-                                    )
-                                  }
-                                >
-                                  Next
-                                </Button>
-                              </div>
+                                )
+                            }
+                        >
+                            Next
+                        </Button>
+                    </div>
                 </CardBody>
             </Card>
         </div>
