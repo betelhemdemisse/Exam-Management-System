@@ -112,7 +112,8 @@ export function Questions() {
 
         if (!savedAnswers[currentExamId]) savedAnswers[currentExamId] = {};
 
-        savedAnswers[currentExamId][currentQ.questionID] = currentQ.choices[selectedOption].choiceID;
+  // Store by exam_questionID so submit payload uses the correct identifier
+  savedAnswers[currentExamId][currentQ.exam_questionID] = currentQ.choices[selectedOption].choiceID;
 
         localStorage.setItem("savedAnswers", JSON.stringify(savedAnswers));
       } catch (error) {
@@ -128,7 +129,8 @@ export function Questions() {
         const currentExamId = localStorage.getItem("currentExamId");
         const savedAnswers = JSON.parse(localStorage.getItem("savedAnswers") || "{}");
         const nextQ = questionsArray[nextQuestionNumber - 1];
-        const savedChoiceID = savedAnswers?.[currentExamId]?.[nextQ.questionID];
+  // Load saved choice by exam_questionID
+  const savedChoiceID = savedAnswers?.[currentExamId]?.[nextQ.exam_questionID];
 
         const savedOptionIndex = nextQ.choices.findIndex(c => c.choiceID === savedChoiceID);
         setSelectedOption(savedOptionIndex !== -1 ? savedOptionIndex : null);

@@ -4,6 +4,8 @@ import {  Auth, Exam } from "@/layouts";
 function App() {
   return (
     <Routes>
+  {/* Redirect root to sign-in to avoid blank page and preserve port */}
+  <Route path="/" element={<Navigate to="/sign-in" replace />} />
       <Route path="/*" element={<Auth />} />
       <Route path="/exam/*" element={<Exam />} />
       <Route path="*" element={<Navigate to="/dashboard/home" replace />} />

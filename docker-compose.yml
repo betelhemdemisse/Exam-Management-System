@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  ems-admin:
+    build: ./ems-admin
+    ports:
+      - "4000:80"
+    restart: always
+  ems-student:
+    build: ./ems-student
+    ports:
+      - "4001:80"
+    restart: always
