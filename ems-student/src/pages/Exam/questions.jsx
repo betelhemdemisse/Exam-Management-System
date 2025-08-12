@@ -269,14 +269,13 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
     );
   }
 
-  // Defensive: check currentQ exists
   const currentQ = questionsArray[currentQuestion - 1];
   if (!currentQ) {
     return <div>Loading questions...</div>;
   }
 
   return (
-    // <PreventInspection>
+     <PreventInspection>
     <div className="h-screen bg-white flex flex-col">
       {/* Fullscreen Warning Modal */}
         {showUnansweredWarnModal && (
@@ -534,7 +533,7 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
         </div>
       )}
     </div>
-    // {/* </PreventInspection> */}
+     </PreventInspection>
   );
 }
 
