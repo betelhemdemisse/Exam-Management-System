@@ -23,7 +23,8 @@ export function Result() {
         startDate: "",
         endDate: ""
     });
-
+    const rowsPerPage = 10;
+    const [page, setPage] = useState(0);
     const fetchResults = async (appliedFilters = {}) => {
         setLoading(true);
         try {
@@ -156,12 +157,15 @@ export function Result() {
                             </tr>
                         </thead>
                         <tbody>
-                            {results.map((res, index) => (
+                          
+                                  {results
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .map((res, index) => (
                                 <tr
                                     key={index}
                                     className="hover:bg-blue-gray-50 transition-colors"
                                 >
-                                    <td className="p-4 align-top">{index + 1}</td>
+                                    <td className="p-4 align-top"> {page * rowsPerPage + index + 1}</td>
                                     <td className="p-4 align-top">{res.studentName}</td>
                                     <td className="p-4 align-top">{res.gender}</td>
                                     <td className="p-4 align-top">{res.company}</td>
@@ -197,6 +201,33 @@ export function Result() {
                             )}
                         </tbody>
                     </table>
+                     <div className="flex justify-between items-center mt-4">
+                                <Button
+                                  variant="outlined"
+                                  size="sm"
+                                  disabled={page === 0}
+                                  onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                                >
+                                  Previous
+                                </Button>
+                                <span className="text-sm text-gray-600">
+                                  Page {page + 1} of {Math.ceil(results.length / rowsPerPage)}
+                                </span>
+                                <Button
+                                  variant="outlined"
+                                  size="sm"
+                                  disabled={page >= Math.ceil(results.length / rowsPerPage) - 1}
+                                  onClick={() =>
+                                    setPage((prev) =>
+                                      prev < Math.ceil(results.length / rowsPerPage) - 1
+                                        ? prev + 1
+                                        : prev
+                                    )
+                                  }
+                                >
+                                  Next
+                                </Button>
+                              </div>
                 </CardBody>
             </Card>
         </div>

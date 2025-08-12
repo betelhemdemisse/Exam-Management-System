@@ -23,7 +23,7 @@ export function User() {
   const [newUsers, setNewUsers] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [page, setPage] = useState(0);
-  const rowsPerPage = 5;
+  const rowsPerPage = 10;
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -173,14 +173,17 @@ export function User() {
               </tr>
             </thead>
             <tbody>
-              {users.map((user, index) => (
+           {users
+            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+            .map((user, index) => (
                 <tr
                   key={index}
                   className="hover:bg-blue-gray-50 transition-colors"
                 >
                   <td className="p-4">
                     <Typography className="text-sm text-blue-gray-700 font-medium">
-                      {index + 1}
+                {page * rowsPerPage + index + 1}
+
                     </Typography>
                   </td>
                   <td className="p-4">
@@ -258,6 +261,36 @@ export function User() {
               ))}
             </tbody>
           </table>
+          <div className="flex justify-between items-center mt-4 px-4">
+  <Button
+    variant="outlined"
+    size="sm"
+    disabled={page === 0}
+    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+  >
+    Previous
+  </Button>
+
+  <span className="text-sm text-gray-600">
+    Page {page + 1} of {Math.ceil(users.length / rowsPerPage)}
+  </span>
+
+  <Button
+    variant="outlined"
+    size="sm"
+    disabled={page >= Math.ceil(users.length / rowsPerPage) - 1}
+    onClick={() =>
+      setPage((prev) =>
+        prev < Math.ceil(users.length / rowsPerPage) - 1
+          ? prev + 1
+          : prev
+      )
+    }
+  >
+    Next
+  </Button>
+</div>
+
         </CardBody>
       </Card>
       <CreateUserModal
