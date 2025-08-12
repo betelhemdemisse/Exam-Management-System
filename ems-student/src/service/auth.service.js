@@ -17,13 +17,13 @@ apiService.interceptors.request.use((config) => {
 });
 
 class AuthService {
-    async login(email, password, setToken) {
+  async login(email, password, setToken) {
     try {
       const response = await apiService.post('/auth/login', {
         email,
         password,
       });
-    const token = response?.data?.accessToken;
+      const token = response?.data?.accessToken;
       if (token) {
         localStorage.setItem('userToken', token);
         setToken(token);
@@ -34,13 +34,14 @@ class AuthService {
       throw error;
     }
   }
-    async loginWithCode(login_code, setToken) {
+  async loginWithCode(login_code, email, setToken) {
     try {
       const response = await apiService.post('/auth/login-code', {
         login_code,
+        email,
       });
       console.log("respons login code", response);
-      
+
       const token = response?.data?.accessToken;
       if (token) {
         localStorage.setItem('userToken', token);
@@ -52,14 +53,14 @@ class AuthService {
       throw error;
     }
   }
-async getCurrentUser(){
-  try {
-    const response = await apiService.get('/auth/me');
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching current user:', error);
-    throw error;
+  async getCurrentUser() {
+    try {
+      const response = await apiService.get('/auth/me');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+      throw error;
+    }
   }
-}
 }
 export default new AuthService();

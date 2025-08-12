@@ -266,7 +266,9 @@ export function Questions() {
   }
 
   return (
+
     // <PreventInspection>
+
     <div className="h-screen bg-white flex flex-col">
       {/* Fullscreen Warning Modal */}
       {showFullscreenWarning && (
@@ -498,6 +500,7 @@ export function Questions() {
         </div>
       )}
     </div>
+
     // {/* </PreventInspection> */}
   );
 }
