@@ -1,128 +1,100 @@
 import {
-  Card,
   Input,
-  Checkbox,
   Button,
   Typography,
 } from "@material-tailwind/react";
-import { Link ,useNavigate} from "react-router-dom";
-import { useStateContext } from "../../contextProvider";
-import { useState  } from "react";
-
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import AuthService from "../../service/auth.service";
+import { useStateContext } from "../../contextProvider";
+import bgImage from "../../assets/img/login-bg.png";
+import logo from "../../assets/img/logo.png";
+
 export function SignIn() {
-    const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginCode, setLoginCode] = useState("");
-  const [useLoginCode, setUseLoginCode] = useState(false);
-  const { setToken, setUser, token } = useStateContext();
   const navigate = useNavigate();
+  const { setToken } = useStateContext();
+  const [email, setEmail] = useState("");
+  const [loginCode, setLoginCode] = useState("");
+  const [error, setError] = useState("");
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  try {
-    let response;
-    if (useLoginCode) {
-      response = await AuthService.loginWithCode(loginCode, setToken);
-    } else {
-      response = await AuthService.login(email, password, setToken);
-    }
-   console.log("login response", response);
-
-   if (response.status === 201) {
-       navigate("/exam");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      const response = await AuthService.loginWithCode(loginCode, email, setToken);
+      if (response.status === 200 || response.status === 201) {
+        navigate("/exam");
       }
-   
-  } catch (error) {
-    console.error("Login failed:", error);
-  }
-};
+
+    } catch (err) {
+      setError("Invalid email or login code.");
+    }
+  };
+
   return (
- <section className="flex items-center justify-center min-h-screen p-4">
-      <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
-        <div className="text-center">
-          <Typography variant="h1" className="font-bold mb-4">
-            {useLoginCode ? "Login with Code" : "Login"}
+    <div
+      className="flex min-h-screen items-center justify-center bg-cover bg-center relative"
+      style={{ backgroundImage: `url(${bgImage})` }}
+    >
+      {/* Blue overlay */}
+      <div className="absolute inset-0 bg-blue-900 bg-opacity-80"></div>
+
+      {/* Content */}
+      <div
+        className="relative z-10 flex w-full max-w-6xl rounded-lg overflow-hidden shadow-lg bg-cover bg-center"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
+        {/* Color overlay */}
+        <div className="absolute inset-0 bg-[#1167B4] bg-opacity-80"></div>
+
+        {/* Left side */}
+        <div className="relative w-1/2 p-12 flex flex-col justify-center text-white">
+          <img src={logo} alt="Logo" className="mb-6 w-24" />
+          <Typography variant="h5" className="mb-4 font-normal leading-relaxed">
+            Addis Ababa administration Public Service and human Resource Development Bureau
           </Typography>
-          <Typography variant="paragraph" color="blue-gray" className="text-lg font-normal">
-            {useLoginCode
-              ? "Enter your login code to access your account."
-              : "Enter your email and password to login."}
+          <Typography variant="h2" className="font-bold mb-8">
+            Login to account<span className="text-blue-300">.</span>
           </Typography>
+
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <Input
+              size="lg"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="!bg-white !text-black rounded-md"
+              labelProps={{ className: "before:content-none after:content-none" }}
+            />
+            <Input
+              type="text"
+              size="lg"
+              placeholder="Login Code"
+              value={loginCode}
+              onChange={(e) => setLoginCode(e.target.value)}
+              className="!bg-white !text-black rounded-md"
+              labelProps={{ className: "before:content-none after:content-none" }}
+            />
+            {error && (
+              <Typography color="red" className="text-sm">
+                {error}
+              </Typography>
+            )}
+            <Button
+              type="submit"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-md"
+            >
+              Login
+            </Button>
+          </form>
         </div>
 
-        <form className="mt-8 mb-2" onSubmit={handleLogin}>
-          <div className="mb-1 flex flex-col gap-6">
-            {useLoginCode ? (
-              <>
-                <Typography variant="medium" color="blue-gray" className="-mb-3 font-medium">
-                  Login Code
-                </Typography>
-                <Input
-                  size="lg"
-                  placeholder="Enter your login code"
-                  value={loginCode}
-                  onChange={(e) => setLoginCode(e.target.value)}
-                  className="!border-t-blue-gray-200 focus:!border-t-gray-900"
-                  labelProps={{
-                    className: "before:content-none after:content-none",
-                  }}
-                />
-              </>
-            ) : (
-              <>
-                <Typography variant="medium" color="blue-gray" className="-mb-3 font-medium">
-                  Your Email
-                </Typography>
-                <Input
-                  size="lg"
-                  placeholder="name@mail.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="!border-t-blue-gray-200 focus:!border-t-gray-900"
-                  labelProps={{
-                    className: "before:content-none after:content-none",
-                  }}
-                />
 
-                <Typography variant="medium" color="blue-gray" className="-mb-3 font-medium">
-                  Password
-                </Typography>
-                <Input
-                  type="password"
-                  size="lg"
-                  placeholder="********"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="!border-t-blue-gray-200 focus:!border-t-gray-900"
-                  labelProps={{
-                    className: "before:content-none after:content-none",
-                  }}
-                />
-              </>
-            )}
-          </div>
-
-          <Button className="mt-6" fullWidth type="submit">
-            {useLoginCode ? "Sign In with Code" : "Sign In"}
-          </Button>
-
-          <div className="flex items-center justify-between gap-2 mt-6">
-            <Typography
-              variant="medium"
-              className="font-medium text-gray-900 cursor-pointer"
-              onClick={() => setUseLoginCode(!useLoginCode)}
-            >
-              {useLoginCode
-                ? "Back to Email & Password Login"
-                : "Login with Code"}
-            </Typography>
-          </div>
-
-       
-        </form>
+        {/* Right side */}
+        <div className="relative w-1/2"></div>
       </div>
-    </section>
+
+    </div>
   );
 }
 

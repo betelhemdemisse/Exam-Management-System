@@ -34,10 +34,11 @@ export function DashboardNavbar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("userToken");
     sessionStorage.clear();           
-
+setTimeout(()=>{
     navigate("/sign-in");
+},1000)
   };
 
   return (
@@ -89,7 +90,7 @@ export function DashboardNavbar() {
           >
             <Bars3Icon strokeWidth={3} className="h-6 w-6 text-blue-gray-500" />
           </IconButton>
-          <Link to="/sign-in">
+          <Link onClick={handleLogout}>
             <Button
               variant="text"
               color="blue-gray"
