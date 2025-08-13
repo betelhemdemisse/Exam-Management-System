@@ -5,6 +5,9 @@ import {
   Typography,
   Tooltip,
   Button,
+  Select,
+  Option,
+  Input,
   Dialog,
   DialogHeader,
   DialogBody,
@@ -18,7 +21,10 @@ import EditUserModal from "./user modal/EditUserModal";
 
 export function User() {
   const fileInputRef = useRef(null);
-
+ const [filters, setFilters] = useState({
+        taken: "",
+        not_taken: "",
+    });
   const [users, setUsers] = useState([]);
   const [newUsers, setNewUsers] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -30,7 +36,8 @@ export function User() {
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-
+  const [allUser, setAllUser] = useState([]);
+  
   const handleUserUpdated = (id, updatedData) => {
     setUsers((prev) =>
       prev.map((u) => (u.id === id ? { ...u, ...updatedData } : u))
@@ -90,13 +97,13 @@ export function User() {
     setPage(0);
   };
 
-  const handleExportClick = async () => {
+  const handleExportClick = async (appliedFilters) => {
     try {
-      const blob = await UserService.exportUsers(); // calls your endpoint
+      const blob = await UserService.exportUsers(appliedFilters);
       const url = window.URL.createObjectURL(new Blob([blob]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'users.csv'); // default filename
+      link.setAttribute('download', 'users.csv'); 
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -118,11 +125,24 @@ export function User() {
       console.error("Failed to delete user:", error);
     }
   };
+const handleFilterChange = (key, value) => {
+  setFilters((prev) => ({
+    ...prev,
+    [key]: value,
+  }));
+};
 
+const filteredUsers = users.filter((user) => {
+  if (!filters.examStatus) return true;
+  if (filters.examStatus === "taken") return user.hasTakenExam === true;
+  if (filters.examStatus === "not_taken") return user.hasTakenExam === false;
+  return true;
+});
+
+console.log("Filtered Users:", filteredUsers);
 
   return (
     <div className="mt-12 mb-8 flex flex-col gap-6">
-      {/* Hidden file input */}
       <input
         type="file"
         accept=".csv"
@@ -130,15 +150,32 @@ export function User() {
         className="hidden"
         onChange={handleImportUser}
       />
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-4">
+             <Select
+    label="Exam Status"
+    value={filters.examStatus}
+    onChange={(value) => handleFilterChange("examStatus", value)}
+>
+    <Option value="">All Users</Option>
+    <Option value="taken">Attended</Option>
+    <Option value="not_taken">Absent</Option>
+</Select>
 
-      {/* Import Button */}
+
+              
+            </div>
       <div className="flex justify-end">
         <Button size="sm" color="blue" onClick={handleImportClick}>
           Import
         </Button>
-        <Button size="sm" color="green" onClick={handleExportClick}>
-          Export
-        </Button>
+      <Button
+           size="sm"
+           color="green"
+           onClick={() => handleExportClick(filters)}
+        >
+        Export
+      </Button>
+
         <Button size="sm" color="purple" onClick={() => setOpenCreateModal(true)}>
           Create User
         </Button>
@@ -173,7 +210,7 @@ export function User() {
               </tr>
             </thead>
             <tbody>
-           {users
+           {filteredUsers
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((user, index) => (
                 <tr
@@ -272,16 +309,16 @@ export function User() {
   </Button>
 
   <span className="text-sm text-gray-600">
-    Page {page + 1} of {Math.ceil(users.length / rowsPerPage)}
+    Page {page + 1} of {Math.ceil(filteredUsers.length / rowsPerPage)}
   </span>
 
   <Button
     variant="outlined"
     size="sm"
-    disabled={page >= Math.ceil(users.length / rowsPerPage) - 1}
+    disabled={page >= Math.ceil(filteredUsers.length / rowsPerPage) - 1}
     onClick={() =>
       setPage((prev) =>
-        prev < Math.ceil(users.length / rowsPerPage) - 1
+        prev < Math.ceil(filteredUsers.length / rowsPerPage) - 1
           ? prev + 1
           : prev
       )

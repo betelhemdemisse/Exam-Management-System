@@ -19,8 +19,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { StatisticsCard } from "@/widgets/cards";
 import { StatisticsChart } from "@/widgets/charts";
+import StatisticsCardsData from "@/data/statistics-cards-data.jsx"; // now imported as hook
 import {
-  statisticsCardsData,
   statisticsChartsData,
   projectsTableData,
   ordersOverviewData,
@@ -28,8 +28,12 @@ import {
 import { CheckCircleIcon, ClockIcon } from "@heroicons/react/24/solid";
 
 export function Home() {
+  // Call the hook to get live stats
+  const statisticsCardsData = StatisticsCardsData();
+
   return (
     <div className="mt-12">
+      {/* Dynamic Statistics Cards */}
       <div className="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
         {statisticsCardsData.map(({ icon, title, footer, ...rest }) => (
           <StatisticsCard
@@ -48,6 +52,8 @@ export function Home() {
           />
         ))}
       </div>
+
+      {/* Static Charts */}
       <div className="mb-6 grid grid-cols-1 gap-y-12 gap-x-6 md:grid-cols-2 xl:grid-cols-3">
         {statisticsChartsData.map((props) => (
           <StatisticsChart
@@ -65,6 +71,8 @@ export function Home() {
           />
         ))}
       </div>
+
+      {/* Projects & Orders */}
       <div className="mb-4 grid grid-cols-1 gap-6 xl:grid-cols-3">
         <Card className="overflow-hidden xl:col-span-2 border border-blue-gray-100 shadow-sm">
           <CardHeader
@@ -106,21 +114,19 @@ export function Home() {
             <table className="w-full min-w-[640px] table-auto">
               <thead>
                 <tr>
-                  {["companies", "members", "budget", "completion"].map(
-                    (el) => (
-                      <th
-                        key={el}
-                        className="border-b border-blue-gray-50 py-3 px-6 text-left"
+                  {["companies", "members", "budget", "completion"].map((el) => (
+                    <th
+                      key={el}
+                      className="border-b border-blue-gray-50 py-3 px-6 text-left"
+                    >
+                      <Typography
+                        variant="small"
+                        className="text-[11px] font-medium uppercase text-blue-gray-400"
                       >
-                        <Typography
-                          variant="small"
-                          className="text-[11px] font-medium uppercase text-blue-gray-400"
-                        >
-                          {el}
-                        </Typography>
-                      </th>
-                    )
-                  )}
+                        {el}
+                      </Typography>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -193,6 +199,7 @@ export function Home() {
             </table>
           </CardBody>
         </Card>
+
         <Card className="border border-blue-gray-100 shadow-sm">
           <CardHeader
             floated={false}

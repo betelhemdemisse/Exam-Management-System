@@ -39,19 +39,28 @@ class UserService {
       throw error;
     }
   }
+async exportUsers(filters = {}) {
+  try {
+    const params = new URLSearchParams();
 
-  // Export users as CSV
-  async exportUsers() {
-    try {
-      const response = await apiService.get('/users/export', {
-        responseType: 'blob',
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error exporting users:', error);
-      throw error;
+    if (filters.examStatus) {
+      params.append("examStatus", filters.examStatus); // match backend param name
     }
+
+    const response = await apiService.get(`/users/export?${params.toString()}`, {
+      responseType: 'blob',
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error exporting users:', error);
+    throw error;
   }
+}
+
+
+
+
 
   // Create a new user
   async createUser(userData) {
@@ -96,6 +105,7 @@ class UserService {
       throw error;
     }
   }
+ 
 }
 
 export default new UserService();
