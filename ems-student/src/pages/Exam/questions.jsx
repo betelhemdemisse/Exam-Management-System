@@ -98,17 +98,22 @@ export function Questions() {
   };
 
   const handleExitExam = () => {
-    confirmFinish();  
+    confirmFinish();
+  setTimeout(()=>{
     clearInterval(countdownTimerRef.current);
     clearInterval(quizTimerRef.current);
+  })
     setTimeout(()=>{
       navigate("/sign-in");
     },1000)
   };
 const handleLogout = ()=>{
-
+  confirmFinish();
+  setTimeout(()=>{
   localStorage.removeItem("userToken");
   localStorage.removeItem("savedAnswers");
+  },1000)
+
   setTimeout(()=>{
   navigate("/sign-in");
   },1000)

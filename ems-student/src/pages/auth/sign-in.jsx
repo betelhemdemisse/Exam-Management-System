@@ -67,7 +67,7 @@ export function SignIn() {
               labelProps={{ className: "before:content-none after:content-none" }}
             />
             <Input
-              type="text"
+              type="password"
               size="lg"
               placeholder="Login Code"
               value={loginCode}
