@@ -39,24 +39,24 @@ class UserService {
       throw error;
     }
   }
-async exportUsers(filters = {}) {
-  try {
-    const params = new URLSearchParams();
+  async exportUsers(filters = {}) {
+    try {
+      const params = new URLSearchParams();
 
-    if (filters.examStatus) {
-      params.append("examStatus", filters.examStatus); // match backend param name
+      if (filters.examStatus) {
+        params.append("examStatus", filters.examStatus); // match backend param name
+      }
+
+      const response = await apiService.get(`/users/export?${params.toString()}`, {
+        responseType: 'blob',
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting users:', error);
+      throw error;
     }
-
-    const response = await apiService.get(`/users/export?${params.toString()}`, {
-      responseType: 'blob',
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error('Error exporting users:', error);
-    throw error;
   }
-}
 
 
 
@@ -105,7 +105,20 @@ async exportUsers(filters = {}) {
       throw error;
     }
   }
- 
+
+  async allowRetake(userId, allowRetake) {
+    try {
+      const payload = { userId, allowRetake };
+      const response = await apiService.post('/users/allow-retake', payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error allowing retake:', error);
+      throw error;
+    }
+  }
+
+
+
 }
 
 export default new UserService();
