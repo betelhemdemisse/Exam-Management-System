@@ -15,15 +15,17 @@ apiService.interceptors.request.use((config) => {
 });
 
 class UserService {
-  // Import users from a parsed JSON array
-  async importUsers(usersArray) {
+  async importUsers(file) {
+      const formData = new FormData();
+    formData.append('file', file);
     try {
-      const response = await apiService.post('/users/import', usersArray, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      return response.data;
+     const response = await apiService.post('/users/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    console.log("response",response)
+      return response;
     } catch (error) {
       throw error;
     }
@@ -39,24 +41,24 @@ class UserService {
       throw error;
     }
   }
-async exportUsers(filters = {}) {
-  try {
-    const params = new URLSearchParams();
+  async exportUsers(filters = {}) {
+    try {
+      const params = new URLSearchParams();
 
-    if (filters.examStatus) {
-      params.append("examStatus", filters.examStatus); // match backend param name
+      if (filters.examStatus) {
+        params.append("examStatus", filters.examStatus); // match backend param name
+      }
+
+      const response = await apiService.get(`/users/export?${params.toString()}`, {
+        responseType: 'blob',
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting users:', error);
+      throw error;
     }
-
-    const response = await apiService.get(`/users/export?${params.toString()}`, {
-      responseType: 'blob',
-    });
-
-    return response.data;
-  } catch (error) {
-    console.error('Error exporting users:', error);
-    throw error;
   }
-}
 
 
 
@@ -105,7 +107,20 @@ async exportUsers(filters = {}) {
       throw error;
     }
   }
- 
+
+  async allowRetake(userId, allowRetake) {
+    try {
+      const payload = { userId, allowRetake };
+      const response = await apiService.post('/users/allow-retake', payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error allowing retake:', error);
+      throw error;
+    }
+  }
+
+
+
 }
 
 export default new UserService();

@@ -3,11 +3,14 @@ import {
   TableCellsIcon,
   ClipboardDocumentIcon,
   DocumentCheckIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  PlayCircleIcon 
 } from "@heroicons/react/24/solid";
 
 import { Home, User, QuestionBank, Result, ChangePassword } from "@/pages/dashboard";
 import ExamConfigurations from "@/pages/dashboard/ExamConfigurations/ExamConfigurations";
+import BeginExam from "@/pages/dashboard/Begin Exam/begin_exam";
+
 import { SignIn, SignUp } from "@/pages/auth";
 import { ExamLanding } from "./pages/Exam";
 import { Questions } from "./pages/Exam";
@@ -61,17 +64,17 @@ export const routes = [
           </ProtectedRoute>
         )
       },
-      // {
-      //   icon: null,
-      //   name: "Edit Exam Configuration",
-      //   path: "/exam_configurations/edit/:id",
-      //   element: (
-      //     <ProtectedRoute>
-      //       <EditExamConfiguration />
-      //     </ProtectedRoute>
-      //   ),
-      //   hidden: true
-      // },
+       {
+        icon: <PlayCircleIcon  {...icon} />,
+        name: "Begin Exam",
+        path: "/begin_exam",
+        element: (
+          <ProtectedRoute>
+            <BeginExam />
+          </ProtectedRoute>
+        )
+      },
+      
       {
         icon: <DocumentCheckIcon {...icon} />,
         name: "Result",

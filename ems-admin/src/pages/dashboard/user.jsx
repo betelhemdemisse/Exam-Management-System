@@ -18,13 +18,21 @@ import Papa from "papaparse";
 import UserService from "../../service/user.service";
 import CreateUserModal from "./user modal/CreateUserModal";
 import EditUserModal from "./user modal/EditUserModal";
+import { Snackbar, Alert } from "@mui/material";
 
 export function User() {
   const fileInputRef = useRef(null);
+
  const [filters, setFilters] = useState({
         taken: "",
         not_taken: "",
     });
+     const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success",
+      });
+
   const [users, setUsers] = useState([]);
   const [newUsers, setNewUsers] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -37,25 +45,41 @@ export function User() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [allUser, setAllUser] = useState([]);
-  
+
+  const [userFile, setUserFile] = useState(null);
+  const [search, setSearch] = useState("");
+
+  const [allowRetakeConfirmOpen, setAllowRetakeConfirmOpen] = useState(false);
+  const [userToToggleRetake, setUserToToggleRetake] = useState(null);
+
+
   const handleUserUpdated = (id, updatedData) => {
     setUsers((prev) =>
       prev.map((u) => (u.id === id ? { ...u, ...updatedData } : u))
     );
   };
 
-  // Fetch users on mount
-  useEffect(() => {
-    const fetchUsers = async () => {
+ const fetchUsers = async () => {
       try {
         const data = await UserService.getUsers();
-        setUsers(data);
+
+        const mappedData = data.map(u => ({
+          ...u,
+          allowRetake: u.allowRetake ?? u.allow_retake ?? false
+        }));
+
+        setUsers(mappedData);
       } catch (error) {
         console.error("Failed to fetch users:", error);
       }
     };
+
+  useEffect(() => {
     fetchUsers();
   }, []);
+
+
+
 
   const handleImportClick = () => {
     fileInputRef.current.click();
@@ -64,12 +88,12 @@ export function User() {
   const handleImportUser = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        setNewUsers(results.data); // Store parsed data for preview
+        setUserFile(file)
+        setNewUsers(results.data); 
         setOpenDialog(true);
       },
       error: (error) => {
@@ -77,22 +101,48 @@ export function User() {
       },
     });
   };
-
   const handleConfirmImport = async () => {
-    try {
-      // Send parsed JSON array to backend
-      const response = await UserService.importUsers(newUsers);
-      setUsers((prev) => [...prev, ...response]);
-      setNewUsers([]);
-      setOpenDialog(false);
-      setPage(0);
-    } catch (error) {
-      console.error("Failed to import users:", error);
+  try {
+    const response = await UserService.importUsers(userFile);
+    if (response.status === 201) {
+     fetchUsers();
+      setSnackbar({
+        open: true,
+        message: response.data.message || "Users imported successfully!",
+        severity: "success",
+      });
+    } else {
+     fetchUsers();
+      setSnackbar({
+        open: true,
+        message: response.data?.message || "Failed to import users. Please check the file format.",
+        severity: "error",
+      });
     }
-  };
+  } catch (error) {
+    console.error("Failed to import users:", error);
+    setSnackbar({
+      open: true,
+      message:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to import users. Please check the file format.",
+      severity: "error",
+    });
+  } finally {
+    setUserFile(null);
+    setNewUsers([]);
+    setOpenDialog(false);
+    setPage(0);
+  }
+};
 
+ const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
   const handleCancelImport = () => {
     setNewUsers([]);
+    setAllUser()
     setOpenDialog(false);
     setPage(0);
   };
@@ -103,7 +153,7 @@ export function User() {
       const url = window.URL.createObjectURL(new Blob([blob]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'users.csv'); 
+      link.setAttribute('download', 'users.csv');
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -125,6 +175,7 @@ export function User() {
       console.error("Failed to delete user:", error);
     }
   };
+
 const handleFilterChange = (key, value) => {
   setFilters((prev) => ({
     ...prev,
@@ -133,13 +184,48 @@ const handleFilterChange = (key, value) => {
 };
 
 const filteredUsers = users.filter((user) => {
-  if (!filters.examStatus) return true;
-  if (filters.examStatus === "taken") return user.hasTakenExam === true;
-  if (filters.examStatus === "not_taken") return user.hasTakenExam === false;
+  // Exam status filter
+  if (filters.examStatus === "taken" && !user.hasTakenExam) return false;
+  if (filters.examStatus === "not_taken" && user.hasTakenExam) return false;
+
+  // Search filter (name, email, company)
+  if (search) {
+    const term = search.toLowerCase();
+    return (
+      (user.name?.toLowerCase().includes(term) ||
+      user.fullName?.toLowerCase().includes(term) ||
+      user.email?.toLowerCase().includes(term) ||
+      user.company?.toLowerCase().includes(term))
+    );
+  }
+
   return true;
 });
 
-console.log("Filtered Users:", filteredUsers);
+
+
+  const handleToggleAllowRetake = async (user) => {
+    try {
+      const newValue = !user.allowRetake;
+
+      await UserService.allowRetake(user.id || user.userID, newValue);
+
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          (u.id || u.userID) === (user.id || user.userID)
+            ? { ...u, allowRetake: newValue }
+            : u
+        )
+      );
+
+      setMenuOpenId(null);
+    } catch (error) {
+      console.error("Failed to toggle allowRetake:", error);
+    }
+  };
+
+
+
 
   return (
     <div className="mt-12 mb-8 flex flex-col gap-6">
@@ -149,38 +235,36 @@ console.log("Filtered Users:", filteredUsers);
         ref={fileInputRef}
         className="hidden"
         onChange={handleImportUser}
-      />
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-4">
-             <Select
-    label="Exam Status"
-    value={filters.examStatus}
-    onChange={(value) => handleFilterChange("examStatus", value)}
->
-    <Option value="">All Users</Option>
-    <Option value="taken">Attended</Option>
-    <Option value="not_taken">Absent</Option>
-</Select>
+      /><div className="flex items-center justify-between px-4 space-x-2">
+  <div className="w-56">
+    <Input label="Search User"  value={search}onChange={(e) => setSearch(e.target.value)}/>
+  </div>
 
+  <div className="flex items-center space-x-2">
+    <Select
+      label="Exam Status"
+      value={filters.examStatus}
+      onChange={(value) => handleFilterChange("examStatus", value)}
+      sx={{ width: 150 }} 
+    >
+      <Option value="">All Users</Option>
+      <Option value="taken">Attended</Option>
+      <Option value="not_taken">Absent</Option>
+    </Select>
 
-              
-            </div>
-      <div className="flex justify-end">
-        <Button size="sm" color="blue" onClick={handleImportClick}>
-          Import
-        </Button>
-      <Button
-           size="sm"
-           color="green"
-           onClick={() => handleExportClick(filters)}
-        >
-        Export
-      </Button>
+    <Button size="sm" color="blue" onClick={handleImportClick}>
+      Import
+    </Button>
 
-        <Button size="sm" color="purple" onClick={() => setOpenCreateModal(true)}>
-          Create User
-        </Button>
-      </div>
+    <Button size="sm" color="green" onClick={() => handleExportClick(filters)}>
+      Export
+    </Button>
 
+    <Button className="w-40"size="sm" color="purple" sx={{ width: 120 }} onClick={() => setOpenCreateModal(true)}>
+      Add User
+    </Button>
+  </div>
+</div>
       {/* Users Table */}
       <Card shadow={false} className="border border-blue-gray-100">
         <CardBody className="overflow-x-auto px-4 py-4">
@@ -193,7 +277,7 @@ console.log("Filtered Users:", filteredUsers);
                   "Email",
                   "Gender",
                   "Company",
-                  "Position",
+                  "Retake",
                   "Type",
                   "Region",
                   "Actions",
@@ -210,123 +294,135 @@ console.log("Filtered Users:", filteredUsers);
               </tr>
             </thead>
             <tbody>
-           {filteredUsers
-            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-            .map((user, index) => (
-                <tr
-                  key={index}
-                  className="hover:bg-blue-gray-50 transition-colors"
-                >
-                  <td className="p-4">
-                    <Typography className="text-sm text-blue-gray-700 font-medium">
-                {page * rowsPerPage + index + 1}
+              {filteredUsers
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((user, index) => (
+                  <tr
+                    key={index}
+                    className="hover:bg-blue-gray-50 transition-colors"
+                  >
+                    <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700 font-medium">
+                        {page * rowsPerPage + index + 1}
 
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography className="text-sm font-semibold text-blue-gray-800">
-                      {user.name || user.fullName}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography className="text-sm text-blue-gray-700">
-                      {user.email}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography className="text-sm text-blue-gray-700">
-                      {user.gender}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography className="text-sm text-blue-gray-700">
-                      {user.company}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography className="text-sm text-blue-gray-700">
-                      {user.position}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography className="text-sm text-blue-gray-700">
-                      {user.user_type || user.type}
-                    </Typography>
-                  </td>
-                  <td className="p-4">
-                    <Typography className="text-sm text-blue-gray-700">
-                      {user.region}
-                    </Typography>
-                  </td>
-                  <td className="p-4 relative">
-                    {/* Ellipsis Icon */}
-                    <EllipsisVerticalIcon
-                      className="h-5 w-5 text-blue-gray-400 cursor-pointer"
-                      onClick={() =>
-                        setMenuOpenId(menuOpenId === user.id || menuOpenId === user.userID ? null : (user.id || user.userID))
-                      }
-                    />
+                      </Typography>
+                    </td>
+                    <td className="p-4">
+                      <Typography className="text-sm font-semibold text-blue-gray-800">
+                        {user.name || user.fullName}
+                      </Typography>
+                    </td>
+                    <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700">
+                        {user.email}
+                      </Typography>
+                    </td>
+                    <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700">
+                        {user.gender}
+                      </Typography>
+                    </td>
+                    <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700">
+                        {user.company}
+                      </Typography>
+                    </td>
+                    <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700">
+                        {user.allowRetake ? "Yes" : "No"}
+                      </Typography>
+                    </td>
 
-                    {/* Dropdown Menu */}
-                    {menuOpenId === (user.id || user.userID) && (
-                      <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                        <button
-                          onClick={() => {
-                            setSelectedUserId(user.id || user.userID);
-                            setOpenEditModal(true);
-                            setMenuOpenId(null);
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            setUserToDelete(user.id || user.userID);
-                            setDeleteConfirmOpen(true);
-                            setMenuOpenId(null);
-                          }}
-                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
-                        >
-                          Delete
-                        </button>
+                    <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700">
+                        {user.user_type || user.type}
+                      </Typography>
+                    </td>
+                    <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700">
+                        {user.region}
+                      </Typography>
+                    </td>
+                    <td className="p-4 relative">
+                      {/* Ellipsis Icon */}
+                      <EllipsisVerticalIcon
+                        className="h-5 w-5 text-blue-gray-400 cursor-pointer"
+                        onClick={() =>
+                          setMenuOpenId(menuOpenId === user.id || menuOpenId === user.userID ? null : (user.id || user.userID))
+                        }
+                      />
 
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                      {/* Dropdown Menu */}
+                      {menuOpenId === (user.id || user.userID) && (
+                        <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                          <button
+                            onClick={() => {
+                              setSelectedUserId(user.id || user.userID);
+                              setOpenEditModal(true);
+                              setMenuOpenId(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setUserToToggleRetake(user);
+                              setAllowRetakeConfirmOpen(true);
+                              setMenuOpenId(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-gray-100"
+                          >
+                            {user.allowRetake ? "Disallow Retake" : "Allow Retake"}
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setUserToDelete(user.id || user.userID);
+                              setDeleteConfirmOpen(true);
+                              setMenuOpenId(null);
+                            }}
+                            className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
           <div className="flex justify-between items-center mt-4 px-4">
-  <Button
-    variant="outlined"
-    size="sm"
-    disabled={page === 0}
-    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-  >
-    Previous
-  </Button>
+            <Button
+              variant="outlined"
+              size="sm"
+              disabled={page === 0}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+            >
+              Previous
+            </Button>
 
-  <span className="text-sm text-gray-600">
-    Page {page + 1} of {Math.ceil(filteredUsers.length / rowsPerPage)}
-  </span>
+            <span className="text-sm text-gray-600">
+              Page {page + 1} of {Math.ceil(filteredUsers.length / rowsPerPage)}
+            </span>
 
-  <Button
-    variant="outlined"
-    size="sm"
-    disabled={page >= Math.ceil(filteredUsers.length / rowsPerPage) - 1}
-    onClick={() =>
-      setPage((prev) =>
-        prev < Math.ceil(filteredUsers.length / rowsPerPage) - 1
-          ? prev + 1
-          : prev
-      )
-    }
-  >
-    Next
-  </Button>
-</div>
+            <Button
+              variant="outlined"
+              size="sm"
+              disabled={page >= Math.ceil(filteredUsers.length / rowsPerPage) - 1}
+              onClick={() =>
+                setPage((prev) =>
+                  prev < Math.ceil(filteredUsers.length / rowsPerPage) - 1
+                    ? prev + 1
+                    : prev
+                )
+              }
+            >
+              Next
+            </Button>
+          </div>
 
         </CardBody>
       </Card>
@@ -365,6 +461,39 @@ console.log("Filtered Users:", filteredUsers);
             }}
           >
             Delete
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog open={allowRetakeConfirmOpen} handler={() => setAllowRetakeConfirmOpen(false)}>
+        <DialogHeader>
+          {userToToggleRetake?.allowRetake ? "Disallow Retake" : "Allow Retake"}
+        </DialogHeader>
+        <DialogBody>
+          {userToToggleRetake?.allowRetake
+            ? "Are you sure you want to disallow retake for this user?"
+            : "Are you sure you want to allow retake for this user?"}
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="red"
+            onClick={() => setAllowRetakeConfirmOpen(false)}
+            className="mr-2"
+          >
+            Cancel
+          </Button>
+          <Button
+            color="blue"
+            onClick={async () => {
+              if (userToToggleRetake) {
+                await handleToggleAllowRetake(userToToggleRetake);
+              }
+              setAllowRetakeConfirmOpen(false);
+              setUserToToggleRetake(null);
+            }}
+          >
+            Confirm
           </Button>
         </DialogFooter>
       </Dialog>
@@ -454,6 +583,20 @@ console.log("Filtered Users:", filteredUsers);
           </Button>
         </DialogFooter>
       </Dialog>
+       <Snackbar
+              open={snackbar.open}
+              autoHideDuration={3000}
+              onClose={handleCloseSnackbar}
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+              <Alert
+                onClose={handleCloseSnackbar}
+                severity={snackbar.severity}
+                variant="filled"
+              >
+                {snackbar.message}
+              </Alert>
+            </Snackbar>
     </div>
   );
 }
