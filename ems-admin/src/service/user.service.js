@@ -15,15 +15,17 @@ apiService.interceptors.request.use((config) => {
 });
 
 class UserService {
-  // Import users from a parsed JSON array
-  async importUsers(usersArray) {
+  async importUsers(file) {
+      const formData = new FormData();
+    formData.append('file', file);
     try {
-      const response = await apiService.post('/users/import', usersArray, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      return response.data;
+     const response = await apiService.post('/users/import', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    console.log("response",response)
+      return response;
     } catch (error) {
       throw error;
     }

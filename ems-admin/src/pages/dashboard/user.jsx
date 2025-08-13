@@ -18,6 +18,7 @@ import Papa from "papaparse";
 import UserService from "../../service/user.service";
 import CreateUserModal from "./user modal/CreateUserModal";
 import EditUserModal from "./user modal/EditUserModal";
+import { Snackbar, Alert } from "@mui/material";
 
 export function User() {
   const fileInputRef = useRef(null);
@@ -25,6 +26,11 @@ export function User() {
         taken: "",
         not_taken: "",
     });
+     const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success",
+      });
   const [users, setUsers] = useState([]);
   const [newUsers, setNewUsers] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -37,16 +43,16 @@ export function User() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [allUser, setAllUser] = useState([]);
-  
+  const [userFile, setUserFile] = useState(null);
+  const [search, setSearch] = useState("");
+
   const handleUserUpdated = (id, updatedData) => {
     setUsers((prev) =>
       prev.map((u) => (u.id === id ? { ...u, ...updatedData } : u))
     );
   };
 
-  // Fetch users on mount
-  useEffect(() => {
-    const fetchUsers = async () => {
+ const fetchUsers = async () => {
       try {
         const data = await UserService.getUsers();
         setUsers(data);
@@ -54,6 +60,7 @@ export function User() {
         console.error("Failed to fetch users:", error);
       }
     };
+  useEffect(() => {
     fetchUsers();
   }, []);
 
@@ -64,12 +71,12 @@ export function User() {
   const handleImportUser = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        setNewUsers(results.data); // Store parsed data for preview
+        setUserFile(file)
+        setNewUsers(results.data); 
         setOpenDialog(true);
       },
       error: (error) => {
@@ -77,22 +84,48 @@ export function User() {
       },
     });
   };
-
   const handleConfirmImport = async () => {
-    try {
-      // Send parsed JSON array to backend
-      const response = await UserService.importUsers(newUsers);
-      setUsers((prev) => [...prev, ...response]);
-      setNewUsers([]);
-      setOpenDialog(false);
-      setPage(0);
-    } catch (error) {
-      console.error("Failed to import users:", error);
+  try {
+    const response = await UserService.importUsers(userFile);
+    if (response.status === 201) {
+     fetchUsers();
+      setSnackbar({
+        open: true,
+        message: response.data.message || "Users imported successfully!",
+        severity: "success",
+      });
+    } else {
+     fetchUsers();
+      setSnackbar({
+        open: true,
+        message: response.data?.message || "Failed to import users. Please check the file format.",
+        severity: "error",
+      });
     }
-  };
+  } catch (error) {
+    console.error("Failed to import users:", error);
+    setSnackbar({
+      open: true,
+      message:
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to import users. Please check the file format.",
+      severity: "error",
+    });
+  } finally {
+    setUserFile(null);
+    setNewUsers([]);
+    setOpenDialog(false);
+    setPage(0);
+  }
+};
 
+ const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
   const handleCancelImport = () => {
     setNewUsers([]);
+    setAllUser()
     setOpenDialog(false);
     setPage(0);
   };
@@ -133,13 +166,25 @@ const handleFilterChange = (key, value) => {
 };
 
 const filteredUsers = users.filter((user) => {
-  if (!filters.examStatus) return true;
-  if (filters.examStatus === "taken") return user.hasTakenExam === true;
-  if (filters.examStatus === "not_taken") return user.hasTakenExam === false;
+  // Exam status filter
+  if (filters.examStatus === "taken" && !user.hasTakenExam) return false;
+  if (filters.examStatus === "not_taken" && user.hasTakenExam) return false;
+
+  // Search filter (name, email, company)
+  if (search) {
+    const term = search.toLowerCase();
+    return (
+      (user.name?.toLowerCase().includes(term) ||
+      user.fullName?.toLowerCase().includes(term) ||
+      user.email?.toLowerCase().includes(term) ||
+      user.company?.toLowerCase().includes(term))
+    );
+  }
+
   return true;
 });
 
-console.log("Filtered Users:", filteredUsers);
+
 
   return (
     <div className="mt-12 mb-8 flex flex-col gap-6">
@@ -150,36 +195,37 @@ console.log("Filtered Users:", filteredUsers);
         className="hidden"
         onChange={handleImportUser}
       />
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-4">
-             <Select
-    label="Exam Status"
-    value={filters.examStatus}
-    onChange={(value) => handleFilterChange("examStatus", value)}
->
-    <Option value="">All Users</Option>
-    <Option value="taken">Attended</Option>
-    <Option value="not_taken">Absent</Option>
-</Select>
+<div className="flex items-center justify-between px-4 space-x-2">
+  <div className="w-56">
+    <Input label="Search User"  value={search}onChange={(e) => setSearch(e.target.value)}/>
+  </div>
 
+  <div className="flex items-center space-x-2">
+    <Select
+      label="Exam Status"
+      value={filters.examStatus}
+      onChange={(value) => handleFilterChange("examStatus", value)}
+      sx={{ width: 150 }} 
+    >
+      <Option value="">All Users</Option>
+      <Option value="taken">Attended</Option>
+      <Option value="not_taken">Absent</Option>
+    </Select>
 
-              
-            </div>
-      <div className="flex justify-end">
-        <Button size="sm" color="blue" onClick={handleImportClick}>
-          Import
-        </Button>
-      <Button
-           size="sm"
-           color="green"
-           onClick={() => handleExportClick(filters)}
-        >
-        Export
-      </Button>
+    <Button size="sm" color="blue" onClick={handleImportClick}>
+      Import
+    </Button>
 
-        <Button size="sm" color="purple" onClick={() => setOpenCreateModal(true)}>
-          Create User
-        </Button>
-      </div>
+    <Button size="sm" color="green" onClick={() => handleExportClick(filters)}>
+      Export
+    </Button>
+
+    <Button className="w-40"size="sm" color="purple" sx={{ width: 120 }} onClick={() => setOpenCreateModal(true)}>
+      Add User
+    </Button>
+  </div>
+</div>
+
 
       {/* Users Table */}
       <Card shadow={false} className="border border-blue-gray-100">
@@ -454,6 +500,20 @@ console.log("Filtered Users:", filteredUsers);
           </Button>
         </DialogFooter>
       </Dialog>
+       <Snackbar
+              open={snackbar.open}
+              autoHideDuration={3000}
+              onClose={handleCloseSnackbar}
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+              <Alert
+                onClose={handleCloseSnackbar}
+                severity={snackbar.severity}
+                variant="filled"
+              >
+                {snackbar.message}
+              </Alert>
+            </Snackbar>
     </div>
   );
 }
