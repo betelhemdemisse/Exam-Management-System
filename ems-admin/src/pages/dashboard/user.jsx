@@ -19,6 +19,7 @@ import UserService from "../../service/user.service";
 import CreateUserModal from "./user modal/CreateUserModal";
 import EditUserModal from "./user modal/EditUserModal";
 import { Snackbar, Alert } from "@mui/material";
+import * as XLSX from "xlsx";
 
 export function User() {
   const fileInputRef = useRef(null);
@@ -85,22 +86,46 @@ export function User() {
     fileInputRef.current.click();
   };
 
-  const handleImportUser = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+
+const handleImportUser = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const fileExtension = file.name.split(".").pop().toLowerCase();
+
+  if (fileExtension === "csv") {
+    // Use PapaParse for CSV
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
-        setUserFile(file)
-        setNewUsers(results.data); 
+        setUserFile(file);
+        setNewUsers(results.data);
         setOpenDialog(true);
       },
       error: (error) => {
         console.error("Failed to parse CSV:", error);
       },
     });
-  };
+  } else if (fileExtension === "xlsx" || fileExtension === "xls") {
+    // Use SheetJS for Excel
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(sheet);
+      setUserFile(file);
+      setNewUsers(jsonData);
+      setOpenDialog(true);
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    alert("Unsupported file type. Please upload CSV or Excel file.");
+  }
+};
+
   const handleConfirmImport = async () => {
   try {
     const response = await UserService.importUsers(userFile);
@@ -147,21 +172,29 @@ export function User() {
     setPage(0);
   };
 
-  const handleExportClick = async (appliedFilters) => {
-    try {
-      const blob = await UserService.exportUsers(appliedFilters);
-      const url = window.URL.createObjectURL(new Blob([blob]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'users.csv');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to export users:', error);
-    }
-  };
+const handleExportClick = async (appliedFilters) => {
+  try {
+    const blob = await UserService.exportUsers(appliedFilters);
+
+    // Convert blob to text first
+    const text = await blob.text();
+
+    // Add BOM at the start
+    const bomText = '\uFEFF' + text;
+
+    const url = window.URL.createObjectURL(new Blob([bomText], { type: 'text/csv;charset=utf-8;' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'users.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Failed to export users:', error);
+  }
+};
+
 
   const handleUserCreated = (newUser) => {
     setUsers((prev) => [...prev, newUser]);
@@ -231,7 +264,7 @@ const filteredUsers = users.filter((user) => {
     <div className="mt-12 mb-8 flex flex-col gap-6">
       <input
         type="file"
-        accept=".csv"
+       accept=".csv, .xls, .xlsx"
         ref={fileInputRef}
         className="hidden"
         onChange={handleImportUser}
