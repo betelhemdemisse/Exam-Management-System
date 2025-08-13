@@ -30,5 +30,21 @@ class ExamService{
       throw error;
     }
   }
+
+  async updateAllowStart(configID, allowStart) {
+    try {
+      const response = await apiService.patch(
+        `/exams/configs/${configID}/allow-start`,
+        {
+          configID,
+          allow_start: allowStart,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating allow_start for config ${configID}:`, error);
+      throw error;
+    }
+  }
 }
 export default new ExamService();
