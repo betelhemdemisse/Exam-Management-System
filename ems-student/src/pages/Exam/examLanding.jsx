@@ -55,7 +55,7 @@ export function ExamLanding() {
 
     } catch (error) {
       console.error("Failed to start exam:", error);
-      setModalMessage("Unable to start the exam. Please try again.");
+      setModalMessage("Unable to start the exam.");
       setModalOpen(true);
     }
   };
@@ -169,7 +169,6 @@ export function ExamLanding() {
             className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold mb-4">Error</h3>
             <p className="mb-6">{modalMessage}</p>
             <button
               onClick={() => setModalOpen(false)}
