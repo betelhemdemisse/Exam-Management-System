@@ -176,10 +176,8 @@ const handleExportClick = async (appliedFilters) => {
   try {
     const blob = await UserService.exportUsers(appliedFilters);
 
-    // Convert blob to text first
     const text = await blob.text();
 
-    // Add BOM at the start
     const bomText = '\uFEFF' + text;
 
     const url = window.URL.createObjectURL(new Blob([bomText], { type: 'text/csv;charset=utf-8;' }));
