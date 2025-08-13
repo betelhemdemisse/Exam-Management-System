@@ -48,7 +48,6 @@ export function Result() {
     }, [filters]);
 
     useEffect(() => {
-        // initial load with no filters to populate dropdowns
         fetchResults({});
     }, []);
 
@@ -57,18 +56,29 @@ export function Result() {
             ...prev,
             [field]: value || ""
         }));
-        setPage(0); // reset to first page when filter changes
+        setPage(0); 
     };
 
-    const handleExport = () => {
-        if (results.length === 0) return;
-        const ws = XLSX.utils.json_to_sheet(results);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Results");
-        XLSX.writeFile(wb, "exam_results.xlsx");
-    };
 
-    // derive unique values from full dataset
+const handleExport = () => {
+    if (results.length === 0) return;
+
+    const formattedResults = results.map(row => {
+        const newRow = {};
+        for (const key in row) {
+            newRow[key] = row[key] != null ? row[key].toString() : '';
+        }
+        return newRow;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(formattedResults);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Results");
+
+    XLSX.writeFile(wb, "exam_results.xlsx", { bookType: "xlsx", type: "array" });
+};
+
+
     const uniqueOrganizations = Array.from(
         new Set(allResults.map(r => r.company).filter(Boolean))
     );
