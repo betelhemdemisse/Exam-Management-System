@@ -225,7 +225,6 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
         examID: currentExamId,
         answers: answersArray,
       };
-      console.log("payload", payload);
 
       await ExamService.submitExam(payload);
 

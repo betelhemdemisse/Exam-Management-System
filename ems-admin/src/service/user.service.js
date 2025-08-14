@@ -24,7 +24,6 @@ class UserService {
         'Content-Type': 'multipart/form-data',
       },
     });
-    console.log("response",response)
       return response;
     } catch (error) {
       throw error;

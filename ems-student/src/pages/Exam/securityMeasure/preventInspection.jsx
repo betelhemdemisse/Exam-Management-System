@@ -8,19 +8,23 @@ const SecureEnvironment = ({ children }) => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        // Tab switched away - show warning immediately
         setShowWarningModal(true);
       } else if (document.visibilityState === 'visible' && showWarningModal) {
-        // Tab switched back while warning was shown - redirect immediately
         handleSubmitExam();
       }
+      
     };
-
+ const handleBlur = () => {
+    handleSubmitExam(); 
+  };
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener("blur", handleBlur);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener("blur", handleBlur);
     };
   }, [showWarningModal]);
+
 
   useEffect(() => {
     const handleMouseLeave = (e) => {

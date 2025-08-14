@@ -19,7 +19,6 @@ export function ExamLanding() {
       const user = await authService.getCurrentUser();
       if (user) {
         setCurrentUser(user);
-        console.log("Current user:", user);
       } else {
         console.log("No user is currently logged in.");
       }
@@ -36,7 +35,6 @@ export function ExamLanding() {
     try {
 
       const createdExam = await examService.createExam();
-      console.log("createdExam", createdExam);
       if (createdExam?.examID) {
         localStorage.setItem("currentExamId", createdExam.examID);
       }
@@ -79,86 +77,86 @@ export function ExamLanding() {
       </header>
 
       <div className="flex justify-center p-6 space-y-6 flex-col items-center">
-        <div
-          className="w-full max-w-7xl text-white p-8 rounded-lg shadow-lg flex flex-col lg:flex-row justify-between items-center"
-          style={{ backgroundColor: "#1167b4" }}
-        >
-          <div className="lg:w-2/3">
-            <div className="text-sm uppercase tracking-wide mb-2">
-              Dashboard / My Exam
-            </div>
-            <h1 className="text-2xl font-bold mb-4">
-             Exam Instruction
-            </h1>
-            <ol class="list-decimal list-inside">
-  <li>The exam must be completed in one session</li>
-  <li>Close all other applications</li>
-  <li>Use of external resources is prohibited</li>
-  <li>System will auto-submit when time expires</li>
-  <li>Report technical issues immediately</li>
-  <li>The system will automatically submit if you switch tabs or open another application</li>
-</ol>
+  <div
+    className="w-full max-w-7xl text-white p-8 rounded-lg shadow-lg flex flex-col lg:flex-row justify-between items-center"
+    style={{ backgroundColor: "#1167b4" }}
+  >
+    <div className="lg:w-2/3">
+      <div className="text-sm uppercase tracking-wide mb-2">
+        Dashboard / My Exam
+      </div>
+      <h1 className="text-3xl font-extrabold mb-4 flex items-center gap-2">
+        📜 Exam Instructions
+      </h1>
+      <ol className="list-decimal list-inside space-y-3 text-base">
+        <li>
+          <span className="font-semibold">Stay in one session:</span> Complete
+          the exam in one continuous session without leaving the browser.
+        </li>
+        <li>
+          <span className="font-semibold text-red-300">No tab switching:</span>{" "}
+          Do not switch tabs, minimize the browser,or open other applications this will end your exam.
+        </li>
+        <li>
+          Opening developer tools will{" "}
+          <span className="text-yellow-300 font-semibold">immediately</span>{" "}
+          submit your exam.
+        </li>
+        <li>Keep your mouse inside the exam window at all times.</li>
+        <li>
+          Any rule violation will cause{" "}
+          <span className="text-red-300 font-semibold">auto-submission</span>{" "}
+          without warning.
+        </li>
+        <li>
+          Report technical issues to the{" "}
+          <span className="font-semibold">supervisor immediately</span>.
+        </li>
+      </ol>
+    </div>
 
+    <div className="lg:w-1/3 flex justify-center mt-6 lg:mt-0">
+      <img src={Ems_logo} alt="Logo" className="max-h-44 object-contain" />
+    </div>
+  </div>
 
-            {/* <div className="flex flex-wrap gap-8">
-              <div>
-                <p className="font-bold text-lg">#75</p>
-                <span className="text-sm">Exam Questions</span>
-              </div>
-              <div>
-                <p className="font-bold text-lg">120 Minutes</p>
-                <span className="text-sm">Duration</span>
-              </div>
-              <div>
-                <p className="font-bold text-lg">80%</p>
-                <span className="text-sm">Passing Score</span>
-              </div>
-            </div> */}
-          </div>
-
-         <div className="lg:w-1/3 flex justify-center mt-6 lg:mt-0">
-  <img src={Ems_logo} alt="Logo" className="max-h-48 object-contain" />
-</div>
-
-
+  <div className="w-full max-w-7xl bg-white p-8 rounded-lg shadow-lg flex flex-col lg:flex-row justify-between items-start gap-6 relative">
+    <div className="lg:w-2/3">
+      <h2 className="text-lg font-bold mb-4">User Information</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div>
+          <p className="text-gray-500 text-sm">Full Name</p>
+          <p className="font-medium">{currentUser?.name}</p>
         </div>
-
-        <div className="w-full max-w-7xl bg-white p-8 rounded-lg shadow-lg flex flex-col lg:flex-row justify-between items-start gap-6 relative">
-          <div className="lg:w-2/3">
-            <h2 className="text-lg font-bold mb-4">User Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div>
-                <p className="text-gray-500 text-sm">Full Name</p>
-                <p className="font-medium">{currentUser?.name}</p>
-              </div>
-              <div>
-                <p className="text-gray-500 text-sm">Company</p>
-                <p className="font-medium">{currentUser?.company}</p>
-              </div>
-              <div>
-                <p className="text-gray-500 text-sm">Position</p>
-                <p className="font-medium">{currentUser?.position}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleBeginExam}
-              className="text-white px-6 py-2 rounded transition flex items-center gap-2
-                bg-gradient-to-r from-[#1167B4] to-[#7F7EFF]
-                hover:from-[#0e559a] hover:to-[#6a6de6]"
-            >
-              Begin Exam <span className="text-lg">&rarr;</span>
-            </button>
-          </div>
-
-          <div className="absolute top-2 right-2 w-49 h-48 opacity-50">
-            <img
-              src={Question_mark_vector}
-              alt="User Image"
-              className="rounded object-cover w-full h-full"
-            />
-          </div>
+        <div>
+          <p className="text-gray-500 text-sm">Company</p>
+          <p className="font-medium">{currentUser?.company}</p>
+        </div>
+        <div>
+          <p className="text-gray-500 text-sm">Position</p>
+          <p className="font-medium">{currentUser?.position}</p>
         </div>
       </div>
+      <button
+        onClick={handleBeginExam}
+        className="text-white px-6 py-2 rounded transition flex items-center gap-2
+          bg-gradient-to-r from-[#1167B4] to-[#7F7EFF]
+          hover:from-[#0e559a] hover:to-[#6a6de6]"
+      >
+        Begin Exam <span className="text-lg">&rarr;</span>
+      </button>
+    </div>
+
+    <div className="absolute top-2 right-2 w-49 h-48 opacity-50">
+      <img
+        src={Question_mark_vector}
+        alt="User Image"
+        className="rounded object-cover w-full h-full"
+      />
+    </div>
+  </div>
+</div>
+
 
       {modalOpen && (
         <div
