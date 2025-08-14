@@ -42,7 +42,6 @@ class AuthService {
         login_code,
         email,
       });
-      console.log("respons login code", response);
 
       const token = response?.data?.accessToken;
       if (token) {
