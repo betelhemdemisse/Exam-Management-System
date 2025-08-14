@@ -20,7 +20,6 @@ class ExamService {
   // Create an exam
   async createExam(data) {
     try {
-      console.log("Sending createExam payload:", data);
 
       const response = await apiService.post('/exams/start', data, {
         headers: {
@@ -28,7 +27,6 @@ class ExamService {
         },
       });
 
-      console.log("Exam created successfully:", response.data);
       return response.data;
     } catch (error) {
       if (error.response) {
@@ -91,7 +89,6 @@ class ExamService {
 
  async submitExam(payload) {
   try {
-    console.log("payload",payload)
     const response = await apiService.post('/exams/submit', payload, {
         headers: {
           'Content-Type': 'application/json',

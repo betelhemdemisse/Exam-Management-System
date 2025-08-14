@@ -5,6 +5,7 @@ const stateContext = createContext({
   token: null,
   setUser: () => { },
   setToken: () => { },
+  setRefreshToken: () => { }, 
 });
 
 export const ContextProvider = ({ children }) => {
@@ -14,7 +15,7 @@ export const ContextProvider = ({ children }) => {
   });
 
   const [token, _setToken] = useState(localStorage.getItem("userToken"));
-
+  const [refreshToken, _setRefreshToken] = useState(localStorage.getItem("refreshToken"));
   const setUser = (user) => {
     _setUser(user);
     if (user) {
@@ -24,19 +25,20 @@ export const ContextProvider = ({ children }) => {
     }
   };
 
- const setToken = (token) => {
-  if (token) {
-    console.log("Setting token:", token);
-    localStorage.setItem("userToken", token);
+  const setToken = (token) => {
     _setToken(token);
-  } else {
-    localStorage.removeItem("userToken");
-    _setToken(null);
+    if (token) {
+      localStorage.setItem("userToken", token);
+    } else {
+      localStorage.removeItem("userToken");
+    }
+  };
+  const setRefereshToken = (refreshToken) => {
+    _setRefreshToken(refreshToken);
   }
-};
 
   return (
-    <stateContext.Provider value={{ user, token, setUser, setToken }}>
+    <stateContext.Provider value={{ user, token, setUser, setToken, setRefereshToken, refreshToken }}>
       {children}
     </stateContext.Provider>
   );

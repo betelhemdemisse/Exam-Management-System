@@ -24,7 +24,6 @@ class ExamService{
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log("response",response)
       return response.data;
     } catch (error) {
       throw error;
