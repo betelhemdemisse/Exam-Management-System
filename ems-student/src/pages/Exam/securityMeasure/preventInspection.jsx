@@ -10,6 +10,7 @@ const SecureEnvironment = ({ children }) => {
       if (document.visibilityState === 'hidden') {
         // Tab switched away - show warning immediately
         setShowWarningModal(true);
+        handleSubmitExam();
       } else if (document.visibilityState === 'visible' && showWarningModal) {
         // Tab switched back while warning was shown - redirect immediately
         handleSubmitExam();
