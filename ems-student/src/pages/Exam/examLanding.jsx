@@ -59,7 +59,7 @@ export function ExamLanding() {
   };
 
   return (
-    // <PreventInspection>
+    <PreventInspection>
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow p-4 flex justify-end items-center max-w-7xl mx-auto rounded-lg">
         <div className="flex items-center gap-3">
@@ -181,6 +181,6 @@ export function ExamLanding() {
         </div>
       )}
     </div>
-    // {/* </PreventInspection> */}
+     </PreventInspection> 
   );
 }
