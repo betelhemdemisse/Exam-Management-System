@@ -238,7 +238,7 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
   };
 
   const cancelFinish = () => {
-    setShowFinishConfirmation(false);
+    setShowUnansweredWarnModal(false);
   };
 
   const handleContinue = () => {

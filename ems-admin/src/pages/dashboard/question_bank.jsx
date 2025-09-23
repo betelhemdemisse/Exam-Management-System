@@ -78,6 +78,7 @@ export function QuestionBank() {
                 const parsedQuestions = jsonData.map((row) => ({
                     question_text: row.question_text,
                     question_type: row.question_type,
+                    exam_source: row.exam_source,
                     category: row.category,
                     difficulty: row.difficulty,
                     choices: JSON.parse(row.choices),
@@ -141,7 +142,7 @@ export function QuestionBank() {
                     <table className="w-full min-w-[700px] text-left">
                         <thead>
                             <tr className="bg-blue-gray-50">
-                                {["NO", "Question", "Type", "Option Action", "Action"].map((header) => (
+                                {["NO", "Question", "Type","Exam Source", "Option Action", "Action"].map((header) => (
                                     <th key={header} className="p-4">
                                         <Typography
                                             variant="small"
@@ -175,6 +176,12 @@ export function QuestionBank() {
                                                 {q.question_type}
                                             </Typography>
                                         </td>
+                                         <td className="p-4 align-top">
+                                            <Typography className="text-sm text-blue-gray-700">
+                                                {q.exam_source || "N/A"}
+                                            </Typography>
+                                        </td>
+
                                         <td className="p-4 align-top">
                                             <Button
                                                 variant="text"

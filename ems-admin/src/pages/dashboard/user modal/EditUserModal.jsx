@@ -23,6 +23,7 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
         gender: "",
         region: "",
         user_type: "junior",
+        exam_source: "",
     });
 
     const [loading, setLoading] = useState(false);
@@ -53,6 +54,7 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
                         gender: user.gender || "",
                         region: user.region || "",
                         user_type: user.user_type || "junior",
+                        exam_source: user.exam_source || "",
                     });
                 } catch (error) {
                     console.error("Failed to fetch user:", error);
@@ -168,6 +170,14 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
                         >
                             <Option value="junior">Junior</Option>
                             <Option value="experienced">Experienced</Option>
+                        </Select>
+                         <Select
+                            label="Exam Source"
+                            value={formData.exam_source}
+                            onChange={(val) => handleSelectChange("exam_source", val)}
+                        >
+                            <Option value="mesob">መሶብ</Option>
+                            <Option value="land">መሬት</Option>
                         </Select>
                     </div>
                 )}

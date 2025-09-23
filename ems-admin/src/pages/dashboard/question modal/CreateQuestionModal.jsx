@@ -16,6 +16,7 @@ import QuestionService from "../../../service/question.service";
 export default function CreateQuestionModal({ open, onClose, onCreated }) {
     const [questionText, setQuestionText] = useState("");
     const [category, setCategory] = useState("");
+    const [exam_source, setExamSource] = useState("");
     const [difficulty, setDifficulty] = useState("Easy");
     const [questionType, setQuestionType] = useState("junior");
     const [choices, setChoices] = useState([
@@ -56,6 +57,7 @@ export default function CreateQuestionModal({ open, onClose, onCreated }) {
                 question_text: questionText,
                 category,
                 difficulty,
+                exam_source,
                 question_type: questionType,
                 choices: choices.map((c) => ({
                     label: c.label,
@@ -73,6 +75,7 @@ export default function CreateQuestionModal({ open, onClose, onCreated }) {
             // Reset form
             setQuestionText("");
             setCategory("");
+            setExamSource("");
             setDifficulty("Easy");
             setQuestionType("junior");
             setChoices([
@@ -113,6 +116,13 @@ export default function CreateQuestionModal({ open, onClose, onCreated }) {
                         <Select value={questionType} onChange={(val) => setQuestionType(val)}>
                             <Option value="junior">Junior</Option>
                             <Option value="experienced">Experienced</Option>
+                        </Select>
+                    </div>
+                     <div className="flex-1">
+                        <Typography variant="small" className="mb-1 font-medium">Exam Source</Typography>
+                        <Select value={exam_source} onChange={(val) => setExamSource(val)}>
+                          <Option value="mesob">መሶብ</Option>
+                        <Option value="land">መሬት</Option>
                         </Select>
                     </div>
                 </div>
