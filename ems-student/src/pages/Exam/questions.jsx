@@ -26,7 +26,7 @@ export function Questions() {
   const [exam, setExam] = useState(createdExam || null);
 
   const questionsArray = exam?.questions || [];
-
+console.log("questionsArray",questionsArray)
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -283,7 +283,7 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
 
   return (
 
-     <PreventInspection>
+    //  <PreventInspection>
 
     <div className="h-screen bg-white flex flex-col">
       {/* Fullscreen Warning Modal */}
@@ -445,28 +445,34 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
 
             {/* Options */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {currentQ.choices.map((option, index) => (
-                <label
-                  key={option.choiceID}
-                  htmlFor={`option${index}`}
-                  className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                    selectedOption === index
-                      ? "border-blue-500 bg-blue-50 shadow-md"
-                      : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    id={`option${index}`}
-                    name="question"
-                    className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500"
-                    checked={selectedOption === index}
-                    onChange={() => handleOptionSelect(index)}
-                  />
-                  <span className="text-gray-800 font-medium">{option.choice_text}</span>
-                </label>
-              ))}
-            </div>
+  {currentQ.choices.map((option, index) => (
+    <label
+      key={option.choiceID}
+      htmlFor={`option${index}`}
+      className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+        selectedOption === index
+          ? "border-blue-500 bg-blue-50 shadow-md"
+          : "border-gray-300 hover:border-blue-400 hover:bg-blue-50"
+      }`}
+    >
+      <div className="flex items-center">
+        <input
+          type="radio"
+          id={`option${index}`}
+          name="question"
+          className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500"
+          checked={selectedOption === index}
+          onChange={() => handleOptionSelect(index)}
+        />
+        <span className="text-gray-800 font-medium">{option.choice_text}</span>
+      </div>
+
+     <span className="ml-4 text-gray-800 font-bold">{option.label}</span>
+
+    </label>
+  ))}
+</div>
+
 
             {/* Navigation Buttons */}
             <div className="flex justify-between mt-10">
@@ -543,7 +549,7 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
       )}
     </div>
 
-     </PreventInspection>
+    //  </PreventInspection>
 
   );
 }
