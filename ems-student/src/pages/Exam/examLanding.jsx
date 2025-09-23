@@ -59,7 +59,7 @@ export function ExamLanding() {
   };
 
   return (
-    <PreventInspection>
+    // <PreventInspection>
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow p-4 flex justify-end items-center max-w-7xl mx-auto rounded-lg">
         <div className="flex items-center gap-3">
@@ -89,6 +89,12 @@ export function ExamLanding() {
         📜 Exam Instructions
       </h1>
       <ol className="list-decimal list-inside space-y-3 text-base">
+         <li>
+          The test contains 25 multiple-choice questions.
+        </li>
+        <li>
+          The total duration of the test is 45 minutes to complete.
+        </li>
         <li>
           <span className="font-semibold">Stay in one session:</span> Complete
           the exam in one continuous session without leaving the browser.
@@ -97,21 +103,17 @@ export function ExamLanding() {
           <span className="font-semibold text-red-300">No tab switching:</span>{" "}
           Do not switch tabs, minimize the browser,or open other applications this will end your exam.
         </li>
-        <li>
-          Opening developer tools will{" "}
-          <span className="text-yellow-300 font-semibold">immediately</span>{" "}
-          submit your exam.
-        </li>
-        <li>Keep your mouse inside the exam window at all times.</li>
-        <li>
-          Any rule violation will cause{" "}
-          <span className="text-red-300 font-semibold">auto-submission</span>{" "}
-          without warning.
-        </li>
+           
         <li>
           Report technical issues to the{" "}
           <span className="font-semibold">supervisor immediately</span>.
         </li>
+       
+          <li>When time expires, the test will automatically submit your answers.</li>
+          <li> The timer will start as soon as you begin the test.</li>
+          <li>Select the best answer by clicking on the corresponding option.</li>
+          <li>Do not use calculators, mobile phones, or other electronic devices during the test.</li>
+          <li>Any form of cheating will result in disqualification</li>
       </ol>
     </div>
 
@@ -136,6 +138,7 @@ export function ExamLanding() {
           <p className="text-gray-500 text-sm">Position</p>
           <p className="font-medium">{currentUser?.position}</p>
         </div>
+
       </div>
       <button
         onClick={handleBeginExam}
@@ -178,6 +181,6 @@ export function ExamLanding() {
         </div>
       )}
     </div>
-    </PreventInspection>
+    // {/* </PreventInspection> */}
   );
 }

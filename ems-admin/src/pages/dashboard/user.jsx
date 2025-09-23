@@ -310,6 +310,7 @@ const filteredUsers = users.filter((user) => {
                   "Company",
                   "Retake",
                   "Type",
+                  "Exam Source",
                   "Region",
                   "Actions",
                 ].map((header) => (
@@ -369,6 +370,12 @@ const filteredUsers = users.filter((user) => {
                         {user.user_type || user.type}
                       </Typography>
                     </td>
+                     <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700">
+                        {user.exam_source || user.exam_source || "N/A"}
+                      </Typography>
+                    </td>
+
                     <td className="p-4">
                       <Typography className="text-sm text-blue-gray-700">
                         {user.region}

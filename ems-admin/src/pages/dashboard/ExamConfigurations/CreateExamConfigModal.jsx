@@ -19,7 +19,8 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
     duration_minutes: "",
     allow_retake: false,
     show_timer_warning: false,
-    exam_type: "", // no default
+    exam_type: "", 
+    exam_source:""
   });
   const [loading, setLoading] = useState(false);
 
@@ -66,6 +67,7 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
         allow_retake: false,
         show_timer_warning: false,
         exam_type: "",
+        exam_source:""
       });
     } catch (error) {
       console.error("Failed to create configuration:", error);
@@ -123,6 +125,23 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
                 <MenuItem value="">Select Exam Type</MenuItem>
                 <MenuItem value="experienced">Experienced</MenuItem>
                 <MenuItem value="junior">Junior</MenuItem>
+              </Select>
+
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Exam Source</InputLabel>
+              <Select
+                name="exam_source"
+                value={formData.exam_source}
+                onChange={handleChange}
+                MenuProps={{
+                  disablePortal: true,
+                  style: { zIndex: 9999 }
+                }}
+              >
+                <MenuItem value="">Select Exam Type</MenuItem>
+                <MenuItem value="land">መሬት</MenuItem>
+                <MenuItem value="mesob">መሶብ</MenuItem>
               </Select>
 
             </FormControl>

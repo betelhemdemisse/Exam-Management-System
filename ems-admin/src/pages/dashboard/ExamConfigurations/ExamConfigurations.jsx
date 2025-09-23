@@ -111,6 +111,7 @@ export default function ExamConfigurations() {
                     "Pass Mark",
                     "Duration (mins)",
                     "Exam Type",
+                    "Exam Source",
                     "Allow Retake",
                     "Show Timer Warning",
                     "Actions",
@@ -134,6 +135,7 @@ export default function ExamConfigurations() {
                     <td className="p-4">{cfg.pass_mark}</td>
                     <td className="p-4">{cfg.duration_minutes}</td>
                     <td className="p-4">{cfg.exam_type}</td>
+                    <td className="p-4">{cfg.exam_source}</td>
                     <td className="p-4">{cfg.allow_retake ? "Yes" : "No"}</td>
                     <td className="p-4">{cfg.show_timer_warning ? "Yes" : "No"}</td>
                     <td className="p-4 flex gap-2">
