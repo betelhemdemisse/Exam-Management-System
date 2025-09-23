@@ -187,6 +187,9 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
       setShowFinishConfirmation(true);
     }
   };
+  const closeConfirmation = ()=>{
+    setShowFinishConfirmation(false)
+  }
 
 
   const saveCurrentAnswer = () => {
@@ -366,7 +369,7 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
             </p>
             <div className="flex justify-end space-x-3">
               <button
-                onClick={cancelFinish}
+                onClick={closeConfirmation}
                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
                 Review Again
