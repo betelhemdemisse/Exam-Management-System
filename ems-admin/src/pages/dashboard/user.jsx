@@ -116,6 +116,7 @@ const handleImportUser = (event) => {
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(sheet);
+      console.log("jsonData",jsonData)
       setUserFile(file);
       setNewUsers(jsonData);
       setOpenDialog(true);
