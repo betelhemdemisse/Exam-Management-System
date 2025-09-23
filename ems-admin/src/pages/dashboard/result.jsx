@@ -10,9 +10,13 @@ import {
 } from "@material-tailwind/react";
 import * as XLSX from "xlsx";
 import ExamReportService from "../../service/result.service";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import "../../fonts/NotoSansEthiopic-VariableFont_wdth,wght-normal.js";
+import html2canvas from "html2canvas";
 
 export function Result() {
-    const [allResults, setAllResults] = useState([]); // store full data for dropdowns
+    const [allResults, setAllResults] = useState([]);
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
@@ -22,6 +26,7 @@ export function Result() {
         type: "",
         status: "",
         startDate: "",
+        exam_source:"",
         endDate: ""
     });
     const rowsPerPage = 10;
@@ -50,6 +55,83 @@ export function Result() {
     useEffect(() => {
         fetchResults({});
     }, []);
+    const [loadingPdf, setLoadingPdf] = useState(false);
+const handleDownload = async (user_id) => {
+  try {
+    setLoadingPdf(true);
+    const response = await ExamReportService.getDetailUserResult(user_id);
+    if (!response || response.length === 0) return alert("No exam data available");
+    console.log("Exam Data:", response);    
+    const exam = response[0];
+    const pdf = new jsPDF("p", "pt", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 30;
+    let currentHeight = margin;
+
+    pdf.setFont("NotoSansEthiopic", "normal");
+
+    pdf.setFontSize(22);
+    pdf.setTextColor(22, 160, 133);
+    pdf.text("Exam Result", pageWidth / 2, currentHeight, { align: "center" });
+    currentHeight += 12;
+    pdf.setDrawColor(22, 160, 133);
+    pdf.setLineWidth(1);
+    pdf.line(margin, currentHeight, pageWidth - margin, currentHeight);
+    currentHeight += 25;
+
+    pdf.setFontSize(12);
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFillColor(245, 245, 245);
+    pdf.rect(margin, currentHeight, pageWidth - 2 * margin, 50, "F");
+    pdf.text(`User Login Code: ${exam.loginCode}`, margin + 10, currentHeight + 18);
+    pdf.text(`Status: ${exam.status}`, margin + 10, currentHeight + 32);
+    pdf.text(`Score: ${exam.score}`, margin + 10, currentHeight + 46);
+    currentHeight += 70;
+
+    for (let i = 0; i < exam.questions.length; i++) {
+      const q = exam.questions[i];
+
+      const questionHtml = document.createElement("div");
+      questionHtml.style.width = "600px"; 
+      questionHtml.style.padding = "10px";
+      questionHtml.style.fontFamily = "Noto Sans Ethiopic, sans-serif";
+      questionHtml.style.background = "#f9f9f9";
+      questionHtml.style.borderRadius = "8px";
+      questionHtml.style.border = "1px solid #ddd";
+      questionHtml.style.marginBottom = "8px";
+      questionHtml.innerHTML = `
+        <strong style="color: #16a085;">${i + 1}. ${q.question}</strong><br>
+        ${q.choices?.map(c => `${c.label}. ${c.text}`).join("<br>") || ""}<br>
+        <em style="color: #2980b9;">User Answer:</em> ${q.userAnswer ? `${q.userAnswer.label}. ${q.userAnswer.text}` : "ምላሽ አልተሰጠም"}<br>
+        <em style="color: #27ae60;">Correct Answer:</em> ${q.correctAnswer ? `${q.correctAnswer.label}. ${q.correctAnswer.text}` :" ምላሽ አልተሰጠም"}<br>
+      `;
+
+      document.body.appendChild(questionHtml);
+      const canvas = await html2canvas(questionHtml, { scale: 1.5, useCORS: true }); 
+      document.body.removeChild(questionHtml);
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.8); 
+      const imgWidth = pageWidth - 2 * margin;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      if (currentHeight + imgHeight > pageHeight - margin) {
+        pdf.addPage();
+        currentHeight = margin;
+      }
+
+      pdf.addImage(imgData, "JPEG", margin, currentHeight, imgWidth, imgHeight);
+      currentHeight += imgHeight + 12;
+    }
+
+    pdf.save(`exam-result-${exam.userID}.pdf`);
+    setLoadingPdf(false);
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    alert("Failed to generate PDF");
+    setLoadingPdf(false);
+  }
+};
 
     const handleFilterChange = (field, value) => {
         setFilters((prev) => ({
@@ -92,7 +174,39 @@ const handleExport = () => {
 
     return (
         <div className="mt-12 mb-8 flex flex-col gap-6">
-            {/* Filters */}
+{loadingPdf && (
+  <div style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+  }}>
+    {/* Inline keyframes for the spinner */}
+    <style>
+      {`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}
+    </style>
+    <div style={{
+      border: "8px solid #f3f3f3",
+      borderTop: "8px solid #16a085",
+      borderRadius: "50%",
+      width: "60px",
+      height: "60px",
+      animation: "spin 1s linear infinite"
+    }}></div>
+  </div>
+)}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-4">
                 
                 {/* Organization Dropdown */}
@@ -107,6 +221,15 @@ const handleExport = () => {
                             {org}
                         </Option>
                     ))}
+                </Select>
+                  <Select
+                    label="Exam Source"
+                    value={filters.exam_source}
+                    onChange={(value) => handleFilterChange("exam_source", value)}
+                >
+                    <Option value="">All</Option>
+                <Option value="mesob">መሶብ</Option>
+                 <Option value="land">መሬት</Option>
                 </Select>
 
                 {/* Gender Dropdown */}
@@ -197,7 +320,8 @@ const handleExport = () => {
                                     "Score",
                                     "Percentage",
                                     "Status",
-                                    "Exam Date"
+                                    "Exam Date",
+                                    "Action",
                                 ].map((header) => (
                                     <th key={header} className="p-4">
                                         <Typography
@@ -241,6 +365,14 @@ const handleExport = () => {
                                         <td className="p-4 align-top">
                                             {new Date(res.dateOfExam).toLocaleDateString()}
                                         </td>
+                                        <td className="p-4 align-top">
+            <span
+              onClick={() => handleDownload(res.user?.userID)}
+              className="cursor-pointer text-blue-600 hover:text-blue-800"
+            >
+              <i className="fas fa-download"></i> 
+            </span>
+          </td>
                                     </tr>
                                 ))}
                             {results.length === 0 && (

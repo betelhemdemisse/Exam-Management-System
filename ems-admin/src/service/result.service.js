@@ -123,6 +123,16 @@ class ExamReportService {
       throw error;
     }
   }
+  async getDetailUserResult(user_id) {
+    try{
+      const response = await apiService.get(`/exams/detailed-results/${user_id}`);
+      return response.data;
+    }
+    catch{
+        console.error('❌ Error exporting exam reports:', error.response || error.message);
+      throw error;
+    }
+  }
 }
 
 export default new ExamReportService();

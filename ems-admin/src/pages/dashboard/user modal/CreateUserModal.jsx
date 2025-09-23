@@ -24,6 +24,8 @@ export default function CreateUserModal({ open, onClose, onUserCreated }) {
         gender: "",
         region: "",
         user_type: "",
+        exam_source:""
+
     });
 
     const handleChange = (e) => {
@@ -49,6 +51,7 @@ export default function CreateUserModal({ open, onClose, onUserCreated }) {
                 gender: "",
                 region: "",
                 user_type: "individual",
+                exam_source:""
             });
         } catch (error) {
             console.error("Failed to create user:", error);
@@ -82,6 +85,10 @@ export default function CreateUserModal({ open, onClose, onUserCreated }) {
                     <Select label="User Type" value={formData.user_type} onChange={(val) => setFormData((prev) => ({ ...prev, user_type: val }))}>
                         <Option value="junior">Junior</Option>
                         <Option value="experienced">Experienced</Option>
+                    </Select>
+                       <Select label="Exam Source" value={formData.exam_source} onChange={(val) => setFormData((prev) => ({ ...prev, exam_source: val }))}>
+                        <Option value="mesob">መሶብ</Option>
+                        <Option value="land">መሬት</Option>
                     </Select>
                     <Input
                         label="Password"
