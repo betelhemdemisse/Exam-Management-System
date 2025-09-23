@@ -2,6 +2,10 @@ version: '3.8'
 services:
   ems-admin:
     build: ./ems-admin
+    # Ensure docx package is installed for export feature
+    environment:
+      - DOCX_EXPORT_ENABLED=true
+    # If using Dockerfile, ensure npm install docx is run in Dockerfile
     ports:
       - "4000:80"
     restart: always
