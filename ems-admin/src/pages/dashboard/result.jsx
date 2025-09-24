@@ -320,6 +320,7 @@ const handleExport = () => {
                                     "Score",
                                     "Percentage",
                                     "Status",
+                                    "Exam Source",
                                     "Exam Date",
                                     "Action",
                                 ].map((header) => (
@@ -361,6 +362,13 @@ const handleExport = () => {
                                             }`}
                                         >
                                             {res.status}
+                                        </td>
+                                        <td>
+                                             {res.user.exam_source === "land"
+                             ? "መሬት"
+                          : res.user.exam_source === "mesob"
+                           ? "መሶብ"
+                           : "N/A"}
                                         </td>
                                         <td className="p-4 align-top">
                                             {new Date(res.dateOfExam).toLocaleDateString()}

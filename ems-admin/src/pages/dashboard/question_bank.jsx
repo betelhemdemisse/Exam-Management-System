@@ -178,7 +178,11 @@ export function QuestionBank() {
                                         </td>
                                          <td className="p-4 align-top">
                                             <Typography className="text-sm text-blue-gray-700">
-                                                {q.exam_source || "N/A"}
+                                             {q.exam_source === "land"
+                                              ? "መሬት"
+                                             : q.exam_source === "mesob"
+                                                ? "መሶብ"
+                                             : "N/A"}
                                             </Typography>
                                         </td>
 
