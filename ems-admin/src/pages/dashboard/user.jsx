@@ -419,10 +419,15 @@ export function User() {
                         {user.user_type || user.type}
                       </Typography>
                     </td>
-                    <td className="p-4">
-                      <Typography className="text-sm text-blue-gray-700">
-                        {user.exam_source || user.exam_source || "N/A"}
+                     <td className="p-4">
+                     <Typography className="text-sm text-blue-gray-700">
+                          {user.exam_source === "land"
+                             ? "መሬት"
+                          : user.exam_source === "mesob"
+                           ? "መሶብ"
+                           : "N/A"}
                       </Typography>
+
                     </td>
 
                     <td className="p-4">
