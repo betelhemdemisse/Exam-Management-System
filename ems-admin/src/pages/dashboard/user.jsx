@@ -24,15 +24,17 @@ import * as XLSX from "xlsx";
 export function User() {
   const fileInputRef = useRef(null);
 
- const [filters, setFilters] = useState({
-        taken: "",
-        not_taken: "",
-    });
-     const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: "",
-        severity: "success",
-      });
+  const [filters, setFilters] = useState({
+    taken: "",
+    not_taken: "",
+    examStatus: "",
+    examSource: "",
+  });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   const [users, setUsers] = useState([]);
   const [newUsers, setNewUsers] = useState([]);
@@ -60,20 +62,20 @@ export function User() {
     );
   };
 
- const fetchUsers = async () => {
-      try {
-        const data = await UserService.getUsers();
+  const fetchUsers = async () => {
+    try {
+      const data = await UserService.getUsers();
 
-        const mappedData = data.map(u => ({
-          ...u,
-          allowRetake: u.allowRetake ?? u.allow_retake ?? false
-        }));
+      const mappedData = data.map(u => ({
+        ...u,
+        allowRetake: u.allowRetake ?? u.allow_retake ?? false
+      }));
 
-        setUsers(mappedData);
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-      }
-    };
+      setUsers(mappedData);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    }
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -87,83 +89,83 @@ export function User() {
   };
 
 
-const handleImportUser = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+  const handleImportUser = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  const fileExtension = file.name.split(".").pop().toLowerCase();
+    const fileExtension = file.name.split(".").pop().toLowerCase();
 
-  if (fileExtension === "csv") {
-    // Use PapaParse for CSV
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
+    if (fileExtension === "csv") {
+      // Use PapaParse for CSV
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          setUserFile(file);
+          setNewUsers(results.data);
+          setOpenDialog(true);
+        },
+        error: (error) => {
+          console.error("Failed to parse CSV:", error);
+        },
+      });
+    } else if (fileExtension === "xlsx" || fileExtension === "xls") {
+      // Use SheetJS for Excel
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
+        console.log("jsonData", jsonData)
         setUserFile(file);
-        setNewUsers(results.data);
+        setNewUsers(jsonData);
         setOpenDialog(true);
-      },
-      error: (error) => {
-        console.error("Failed to parse CSV:", error);
-      },
-    });
-  } else if (fileExtension === "xlsx" || fileExtension === "xls") {
-    // Use SheetJS for Excel
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(sheet);
-      console.log("jsonData",jsonData)
-      setUserFile(file);
-      setNewUsers(jsonData);
-      setOpenDialog(true);
-    };
-    reader.readAsArrayBuffer(file);
-  } else {
-    alert("Unsupported file type. Please upload CSV or Excel file.");
-  }
-};
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      alert("Unsupported file type. Please upload CSV or Excel file.");
+    }
+  };
 
   const handleConfirmImport = async () => {
-  try {
-    const response = await UserService.importUsers(userFile);
-    if (response.status === 201) {
-     fetchUsers();
+    try {
+      const response = await UserService.importUsers(userFile);
+      if (response.status === 201) {
+        fetchUsers();
+        setSnackbar({
+          open: true,
+          message: response.data.message || "Users imported successfully!",
+          severity: "success",
+        });
+      } else {
+        fetchUsers();
+        setSnackbar({
+          open: true,
+          message: response.data?.message || "Failed to import users. Please check the file format.",
+          severity: "error",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to import users:", error);
       setSnackbar({
         open: true,
-        message: response.data.message || "Users imported successfully!",
-        severity: "success",
-      });
-    } else {
-     fetchUsers();
-      setSnackbar({
-        open: true,
-        message: response.data?.message || "Failed to import users. Please check the file format.",
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to import users. Please check the file format.",
         severity: "error",
       });
+    } finally {
+      setUserFile(null);
+      setNewUsers([]);
+      setOpenDialog(false);
+      setPage(0);
     }
-  } catch (error) {
-    console.error("Failed to import users:", error);
-    setSnackbar({
-      open: true,
-      message:
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to import users. Please check the file format.",
-      severity: "error",
-    });
-  } finally {
-    setUserFile(null);
-    setNewUsers([]);
-    setOpenDialog(false);
-    setPage(0);
-  }
-};
+  };
 
- const handleCloseSnackbar = () => {
+  const handleCloseSnackbar = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
   const handleCancelImport = () => {
@@ -173,26 +175,52 @@ const handleImportUser = (event) => {
     setPage(0);
   };
 
-const handleExportClick = async (appliedFilters) => {
-  try {
-    const blob = await UserService.exportUsers(appliedFilters);
+  const handleExportClick = () => {
+    try {
+      if (filteredUsers.length === 0) {
+        alert("No users found for the selected filters.");
+        return;
+      }
 
-    const text = await blob.text();
+      const safeValue = (val) => (val !== null && val !== undefined && val !== "" ? val : "N/A");
 
-    const bomText = '\uFEFF' + text;
+      const exportData = filteredUsers.map((user) => ({
+        name: safeValue(user.name),
+        email: safeValue(user.email),
+        login_code: safeValue(user.login_code),
+        company: safeValue(user.company),
+        position: safeValue(user.position),
+        year_of_experience: safeValue(user.year_of_experience),
+        exam_source: safeValue(user.exam_source),
+        gender: safeValue(user.gender),
+        region: safeValue(user.region),
+        hasTakenExam: user.hasTakenExam !== undefined
+          ? (user.hasTakenExam ? "Yes" : "No")
+          : "N/A",
+      }));
 
-    const url = window.URL.createObjectURL(new Blob([bomText], { type: 'text/csv;charset=utf-8;' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'users.csv');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error('Failed to export users:', error);
-  }
-};
+
+      const csv = Papa.unparse(exportData);
+
+      const bomCsv = "\uFEFF" + csv;
+
+      const url = window.URL.createObjectURL(
+        new Blob([bomCsv], { type: "text/csv;charset=utf-8;" })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "users.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export users:", error);
+    }
+  };
+
+
+
 
 
   const handleUserCreated = (newUser) => {
@@ -208,31 +236,37 @@ const handleExportClick = async (appliedFilters) => {
     }
   };
 
-const handleFilterChange = (key, value) => {
-  setFilters((prev) => ({
-    ...prev,
-    [key]: value,
-  }));
-};
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
-const filteredUsers = users.filter((user) => {
-  // Exam status filter
-  if (filters.examStatus === "taken" && !user.hasTakenExam) return false;
-  if (filters.examStatus === "not_taken" && user.hasTakenExam) return false;
+  const filteredUsers = users.filter((user) => {
+    // Exam status filter
+    if (filters.examStatus === "taken" && !user.hasTakenExam) return false;
+    if (filters.examStatus === "not_taken" && user.hasTakenExam) return false;
+    if (filters.examSource) {
+      if (filters.examSource === "N/A") {
+        if (user.exam_source) return false;
+      } else if (user.exam_source !== filters.examSource) {
+        return false;
+      }
+    }
+    // Search filter (name, email, company)
+    if (search) {
+      const term = search.toLowerCase();
+      return (
+        (user.name?.toLowerCase().includes(term) ||
+          user.fullName?.toLowerCase().includes(term) ||
+          user.email?.toLowerCase().includes(term) ||
+          user.company?.toLowerCase().includes(term))
+      );
+    }
 
-  // Search filter (name, email, company)
-  if (search) {
-    const term = search.toLowerCase();
-    return (
-      (user.name?.toLowerCase().includes(term) ||
-      user.fullName?.toLowerCase().includes(term) ||
-      user.email?.toLowerCase().includes(term) ||
-      user.company?.toLowerCase().includes(term))
-    );
-  }
-
-  return true;
-});
+    return true;
+  });
 
 
 
@@ -263,40 +297,54 @@ const filteredUsers = users.filter((user) => {
     <div className="mt-12 mb-8 flex flex-col gap-6">
       <input
         type="file"
-       accept=".csv, .xls, .xlsx"
+        accept=".csv, .xls, .xlsx"
         ref={fileInputRef}
         className="hidden"
         onChange={handleImportUser}
       /><div className="flex items-center justify-between px-4 space-x-2">
-  <div className="w-56">
-    <Input label="Search User"  value={search}onChange={(e) => setSearch(e.target.value)}/>
-  </div>
+        <div className="w-56">
+          <Input label="Search User" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
 
-  <div className="flex items-center space-x-2">
-    <Select
-      label="Exam Status"
-      value={filters.examStatus}
-      onChange={(value) => handleFilterChange("examStatus", value)}
-      sx={{ width: 150 }} 
-    >
-      <Option value="">All Users</Option>
-      <Option value="taken">Attended</Option>
-      <Option value="not_taken">Absent</Option>
-    </Select>
+        <div className="flex items-center space-x-2">
+          <Select
+            label="Exam Status"
+            value={filters.examStatus}
+            onChange={(value) => handleFilterChange("examStatus", value)}
+            sx={{ width: 150 }}
+          >
+            <Option value="">All Users</Option>
+            <Option value="taken">Attended</Option>
+            <Option value="not_taken">Absent</Option>
+          </Select>
 
-    <Button size="sm" color="blue" onClick={handleImportClick}>
-      Import
-    </Button>
+          <Select
+            label="Exam Source"
+            value={filters.examSource}
+            onChange={(value) => handleFilterChange("examSource", value)}
+            sx={{ width: 150 }}
+          >
+            <Option value="">All</Option>
+            <Option value="mesob">መሶብ</Option>
+            <Option value="land">መሬት</Option>
+            <Option value="N/A">N/A</Option>
+          </Select>
 
-    <Button size="sm" color="green" onClick={() => handleExportClick(filters)}>
-      Export
-    </Button>
 
-    <Button className="w-40"size="sm" color="purple" sx={{ width: 120 }} onClick={() => setOpenCreateModal(true)}>
-      Add User
-    </Button>
-  </div>
-</div>
+
+          <Button size="sm" color="blue" onClick={handleImportClick}>
+            Import
+          </Button>
+
+          <Button size="sm" color="green" onClick={() => handleExportClick(filters)}>
+            Export
+          </Button>
+
+          <Button className="w-40" size="sm" color="purple" sx={{ width: 120 }} onClick={() => setOpenCreateModal(true)}>
+            Add User
+          </Button>
+        </div>
+      </div>
       {/* Users Table */}
       <Card shadow={false} className="border border-blue-gray-100">
         <CardBody className="overflow-x-auto px-4 py-4">
@@ -371,7 +419,7 @@ const filteredUsers = users.filter((user) => {
                         {user.user_type || user.type}
                       </Typography>
                     </td>
-                     <td className="p-4">
+                    <td className="p-4">
                       <Typography className="text-sm text-blue-gray-700">
                         {user.exam_source || user.exam_source || "N/A"}
                       </Typography>
@@ -622,20 +670,20 @@ const filteredUsers = users.filter((user) => {
           </Button>
         </DialogFooter>
       </Dialog>
-       <Snackbar
-              open={snackbar.open}
-              autoHideDuration={3000}
-              onClose={handleCloseSnackbar}
-              anchorOrigin={{ vertical: "top", horizontal: "center" }}
-            >
-              <Alert
-                onClose={handleCloseSnackbar}
-                severity={snackbar.severity}
-                variant="filled"
-              >
-                {snackbar.message}
-              </Alert>
-            </Snackbar>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }
