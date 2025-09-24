@@ -30,6 +30,8 @@ export default function BeginExam() {
     const fetchConfigs = async () => {
         try {
             const data = await ExamConfigurationService.getAllExamConfigurations();
+            console.log("Fetched Configurations:", data);
+
             const updatedData = data.map(cfg => ({
                 ...cfg,
                 allow_start: cfg.allow_start ?? false,
@@ -98,7 +100,7 @@ export default function BeginExam() {
                         <table className="w-full min-w-[700px] text-left">
                             <thead>
                                 <tr className="bg-blue-gray-50">
-                                    {["NO", "Exam Type", "Allow Start"].map(header => (
+                                    {["NO", "Exam Type", "Exam Source", "Allow Start"].map(header => (
                                         <th key={header} className="p-4">
                                             <Typography
                                                 variant="small"
@@ -115,6 +117,7 @@ export default function BeginExam() {
                                     <tr key={cfg.configID} className="hover:bg-blue-gray-50 transition-colors">
                                         <td className="p-4">{index + 1}</td>
                                         <td className="p-4">{cfg.exam_type}</td>
+                                        <td className="p-4">{cfg.exam_source}</td>
                                         <td className="p-4">
                                             <Tooltip content={cfg.allow_start ? "Currently ON" : "Currently OFF"}>
                                                 <Switch
