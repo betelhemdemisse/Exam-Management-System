@@ -40,6 +40,10 @@ export function Result() {
         land: "መሬት",
     };
 
+    const userTypeLabels = {
+        experienced: "Experienced",
+        junior: "Junior",
+    };
     const rowsPerPage = 10;
     const [page, setPage] = useState(0);
 
@@ -68,14 +72,17 @@ export function Result() {
             filtered = filtered.filter(r => r.company === filters.company);
         }
         if (filters.gender) {
-            filtered = filtered.filter(r => r.gender === filters.gender);
+            filtered = filtered.filter(r => r.gender?.toLowerCase() === filters.gender.toLowerCase());
         }
         if (filters.region) {
             filtered = filtered.filter(r => r.region === filters.region);
         }
         if (filters.type) {
-            filtered = filtered.filter(r => r.type === filters.type);
+            filtered = filtered.filter(
+                r => r.user?.user_type?.toLowerCase() === filters.type.toLowerCase()
+            );
         }
+
         if (filters.status) {
             filtered = filtered.filter(r => r.status === filters.status);
         }
@@ -187,32 +194,32 @@ export function Result() {
         setPage(0);
     };
 
-   const handleExport = () => {
-    if (results.length === 0) return;
+    const handleExport = () => {
+        if (results.length === 0) return;
 
-    const formattedResults = results.map(row => ({
-        "NO": row.id || "",
-        "Full Name": row.studentName || "",
-        "Gender": row.gender || "",
-        "Organization": row.company || "",
-        "Region": row.region || "",
-        "Position": row.position || "",
-        "Exam Source": row.user?.exam_source 
-            ? examSourceLabels[row.user.exam_source] || row.user.exam_source 
-            : "N/A",
-        "Questions": row.totalQuestions || "",
-        "Score": row.score || "",
-        "Percentage": row.percentage || "",
-        "Status": row.status || "",
-        "Exam Date": row.dateOfExam ? new Date(row.dateOfExam).toLocaleDateString() : ""
-    }));
+        const formattedResults = results.map(row => ({
+            "NO": row.id || "",
+            "Full Name": row.studentName || "",
+            "Gender": row.gender || "",
+            "Organization": row.company || "",
+            "Region": row.region || "",
+            "Position": row.position || "",
+            "Exam Source": row.user?.exam_source
+                ? examSourceLabels[row.user.exam_source] || row.user.exam_source
+                : "N/A",
+            "Questions": row.totalQuestions || "",
+            "Score": row.score || "",
+            "Percentage": row.percentage || "",
+            "Status": row.status || "",
+            "Exam Date": row.dateOfExam ? new Date(row.dateOfExam).toLocaleDateString() : ""
+        }));
 
-    const ws = XLSX.utils.json_to_sheet(formattedResults);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Results");
+        const ws = XLSX.utils.json_to_sheet(formattedResults);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Results");
 
-    XLSX.writeFile(wb, "exam_results.xlsx", { bookType: "xlsx", type: "array" });
-};
+        XLSX.writeFile(wb, "exam_results.xlsx", { bookType: "xlsx", type: "array" });
+    };
 
 
     const uniqueOrganizations = Array.from(
@@ -324,7 +331,7 @@ export function Result() {
                         <thead>
                             <tr className="bg-blue-gray-50">
                                 {[
-                                    "NO", "Full Name", "Gender", "Organization", "Region", "Position",
+                                    "NO", "Full Name", "Gender", "User Type", "Organization", "Region", "Position",
                                     "Exam Source", "Questions", "Score", "Percentage", "Status", "Exam Date", "Action"
                                 ].map((header) => (
                                     <th key={header} className="p-4">
@@ -346,6 +353,9 @@ export function Result() {
                                         <td className="p-4">{page * rowsPerPage + index + 1}</td>
                                         <td className="p-4">{res.studentName}</td>
                                         <td className="p-4">{res.gender}</td>
+                                        <td className="p-4">
+                                            {userTypeLabels[res.user?.user_type] || "N/A"}
+                                        </td>
                                         <td className="p-4">{res.company}</td>
                                         <td className="p-4">{res.region}</td>
                                         <td className="p-4">{res.position}</td>
