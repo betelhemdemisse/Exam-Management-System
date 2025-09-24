@@ -40,24 +40,29 @@ class UserService {
       throw error;
     }
   }
-  async exportUsers(filters = {}) {
-    try {
-      const params = new URLSearchParams();
+async exportUsers(filters = {}) {
+  try {
+    const params = new URLSearchParams();
 
-      if (filters.examStatus) {
-        params.append("examStatus", filters.examStatus); // match backend param name
-      }
-
-      const response = await apiService.get(`/users/export?${params.toString()}`, {
-        responseType: 'blob',
-      });
-
-      return response.data;
-    } catch (error) {
-      console.error('Error exporting users:', error);
-      throw error;
+    if (filters.examStatus) {
+      params.append("examStatus", filters.examStatus);
     }
+
+    if (filters.examSource) {
+      params.append("examSource", filters.examSource);
+    }
+
+    const response = await apiService.get(`/users/export?${params.toString()}`, {
+      responseType: 'blob',
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Error exporting users:', error);
+    throw error;
   }
+}
+
 
 
 

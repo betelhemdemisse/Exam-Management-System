@@ -24,7 +24,7 @@ export default function CreateUserModal({ open, onClose, onUserCreated }) {
         gender: "",
         region: "",
         user_type: "",
-        exam_source:""
+        exam_source: ""
 
     });
 
@@ -51,7 +51,7 @@ export default function CreateUserModal({ open, onClose, onUserCreated }) {
                 gender: "",
                 region: "",
                 user_type: "individual",
-                exam_source:""
+                exam_source: ""
             });
         } catch (error) {
             console.error("Failed to create user:", error);
@@ -61,7 +61,7 @@ export default function CreateUserModal({ open, onClose, onUserCreated }) {
     return (
         <Dialog open={open} handler={onClose} size="sm">
             <DialogHeader>Create New User</DialogHeader>
-            <DialogBody divider>
+            <DialogBody divider className="max-h-[70vh] overflow-y-auto">
                 <div className="flex flex-col gap-4">
                     <Input label="Full Name" name="name" value={formData.name} onChange={handleChange} />
                     <Input label="Email" type="email" name="email" value={formData.email} onChange={handleChange} />
@@ -86,7 +86,7 @@ export default function CreateUserModal({ open, onClose, onUserCreated }) {
                         <Option value="junior">Junior</Option>
                         <Option value="experienced">Experienced</Option>
                     </Select>
-                       <Select label="Exam Source" value={formData.exam_source} onChange={(val) => setFormData((prev) => ({ ...prev, exam_source: val }))}>
+                    <Select label="Exam Source" value={formData.exam_source} onChange={(val) => setFormData((prev) => ({ ...prev, exam_source: val }))}>
                         <Option value="mesob">መሶብ</Option>
                         <Option value="land">መሬት</Option>
                     </Select>
