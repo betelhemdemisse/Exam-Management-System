@@ -201,6 +201,7 @@ export function Result() {
             "NO": row.id || "",
             "Full Name": row.studentName || "",
             "Gender": row.gender || "",
+            "Email": row.user?.email || "N/A",
             "Organization": row.company || "",
             "Region": row.region || "",
             "Position": row.position || "",
@@ -331,7 +332,7 @@ export function Result() {
                         <thead>
                             <tr className="bg-blue-gray-50">
                                 {[
-                                    "NO", "Full Name", "Gender", "User Type", "Organization", "Region", "Position",
+                                    "NO", "Full Name", "Gender", "User Type","Email", "Organization", "Region", "Position",
                                     "Exam Source", "Questions", "Score", "Percentage", "Status", "Exam Date", "Action"
                                 ].map((header) => (
                                     <th key={header} className="p-4">
@@ -355,6 +356,9 @@ export function Result() {
                                         <td className="p-4">{res.gender}</td>
                                         <td className="p-4">
                                             {userTypeLabels[res.user?.user_type] || "N/A"}
+                                        </td>
+                                         <td className="p-4">
+                                            {[res.user?.email] || "N/A"}
                                         </td>
                                         <td className="p-4">{res.company}</td>
                                         <td className="p-4">{res.region}</td>
