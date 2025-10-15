@@ -124,6 +124,20 @@ export function QuestionBank() {
         }
     };
 
+    const handleDeleteQuestion = async (id) => {
+        const confirmed = window.confirm("Are you sure you want to delete this question?");
+        if (!confirmed) return;
+
+        try {
+            await QuestionService.deleteQuestion(id);
+            setQuestions((prev) => prev.filter((q) => q.questionID !== id));
+        } catch (error) {
+            console.error("Failed to delete question:", error);
+            alert("Failed to delete question. Please try again.");
+        }
+    };
+
+
     const handleCancelImport = () => {
         setNewQuestions([]);
         setShowDialog(false);
@@ -249,17 +263,29 @@ export function QuestionBank() {
                                                 </Button>
                                             </td>
                                             <td className="p-4 align-top">
-                                                <Button
-                                                    variant="text"
-                                                    size="sm"
-                                                    color="blue"
-                                                    onClick={() => {
-                                                        setSelectedQuestionId(q.questionID);
-                                                        setEditModalOpen(true);
-                                                    }}
-                                                >
-                                                    Edit
-                                                </Button>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="text"
+                                                        size="sm"
+                                                        color="blue"
+                                                        onClick={() => {
+                                                            setSelectedQuestionId(q.questionID);
+                                                            setEditModalOpen(true);
+                                                        }}
+                                                    >
+                                                        Edit
+                                                    </Button>
+
+                                                    <Button
+                                                        variant="text"
+                                                        size="sm"
+                                                        color="red"
+                                                        onClick={() => handleDeleteQuestion(q.questionID)}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                </div>
+
                                             </td>
                                         </tr>
 
