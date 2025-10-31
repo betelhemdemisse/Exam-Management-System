@@ -14,7 +14,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import "../../fonts/NotoSansEthiopic-VariableFont_wdth,wght-normal.js";
 import html2canvas from "html2canvas";
-
 export function Result() {
     const [allResults, setAllResults] = useState([]);
     const [results, setResults] = useState([]);
@@ -92,6 +91,7 @@ export function Result() {
             } else {
                 filtered = filtered.filter(r => r.user?.exam_source === filters.exam_source);
             }
+            //region, user_type, exam_source ,exam_date , organization  
         }
 
         if (filters.startDate) {
@@ -131,8 +131,7 @@ export function Result() {
             pdf.setDrawColor(22, 160, 133);
             pdf.setLineWidth(1);
             pdf.line(margin, currentHeight, pageWidth - margin, currentHeight);
-            currentHeight += 25;
-
+            currentHeight += 50;
             pdf.setFontSize(12);
             pdf.setTextColor(0, 0, 0);
             pdf.setFillColor(245, 245, 245);
@@ -164,7 +163,7 @@ export function Result() {
                 const canvas = await html2canvas(questionHtml, { scale: 1.5, useCORS: true });
                 document.body.removeChild(questionHtml);
 
-                const imgData = canvas.toDataURL("image/jpeg", 0.8);
+                const imgData = canvas.toDataURL("image/jpeg", 0.7);
                 const imgWidth = pageWidth - 2 * margin;
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
@@ -221,6 +220,91 @@ export function Result() {
 
         XLSX.writeFile(wb, "exam_results.xlsx", { bookType: "xlsx", type: "array" });
     };
+
+const handleExportPDF = async () => {
+    if (!results || results.length === 0) return; // results already contains filtered data
+
+    const pdf = new jsPDF("p", "pt", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 20;
+
+    const chunkSize = 62; // rows per page
+    for (let i = 0; i < results.length; i += chunkSize) {
+        const table = document.createElement("table");
+        table.style.width = "100%";
+        table.style.fontFamily = "Noto Sans Ethiopic, sans-serif";
+        table.style.borderCollapse = "separate";
+        table.style.borderSpacing = "0 2px";
+        table.style.fontSize = "12px";
+
+        // Table header
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        [
+            "NO","Full Name","Gender","Email",
+            "Position","Questions","Score","Percentage"
+        ].forEach(h => {
+            const th = document.createElement("th");
+            th.innerText = h;
+            th.style.padding = "6px 8px";
+            th.style.background = "#2c3e50";
+            th.style.color = "#ffffff";
+            th.style.fontWeight = "bold";
+            th.style.textAlign = "left";
+            th.style.borderRadius = "4px 4px 0 0";
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Table body
+        const tbody = document.createElement("tbody");
+        results.slice(i, i + chunkSize).forEach((row, index) => {
+            const tr = document.createElement("tr");
+            tr.style.background = index % 2 === 0 ? "#ecf0f1" : "#ffffff";
+            [
+                i + index + 1,
+                row.studentName || "",
+                row.gender || "",
+                row.user?.email || "N/A",
+                row.position || "",
+                row.totalQuestions || "",
+                row.score || "",
+                row.percentage || ""
+            ].forEach(cellText => {
+                const td = document.createElement("td");
+                td.innerText = cellText;
+                td.style.padding = "6px 8px";
+                td.style.border = "none";
+                td.style.color = "#34495e";
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+
+        // Offscreen rendering
+        table.style.position = "fixed";
+        table.style.left = "-9999px";
+        document.body.appendChild(table);
+
+        // Capture table as JPEG for smaller size
+        const canvas = await html2canvas(table, { scale: 1.2 });
+        const imgData = canvas.toDataURL("image/jpeg", 0.7);
+        document.body.removeChild(table);
+
+        const imgProps = pdf.getImageProperties(imgData);
+        const imgWidth = pageWidth - margin * 2;
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+        pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
+
+        if (i + chunkSize < results.length) pdf.addPage();
+    }
+
+    pdf.save("exam_results.pdf");
+};
+
 
 
     const uniqueOrganizations = Array.from(
@@ -321,7 +405,10 @@ export function Result() {
             {/* Export */}
             <div className="px-4">
                 {results.length > 0 && (
+                    <>
                     <Button onClick={handleExport} color="blue">Export XLSX</Button>
+                    <Button onClick={handleExportPDF} color="blue">Export PDF</Button>
+                    </>
                 )}
             </div>
 
