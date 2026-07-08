@@ -62,16 +62,16 @@ class ExamService {
     }
   }
 
-  // Save/update an answer (draft)
-  async saveAnswer(examID, answerData) {
+  // Save/update an answer (draft) - uses backend per-question save endpoint
+  async saveAnswer(answerData) {
     try {
       const response = await apiService.post(
-        `/exams/${examID}/answer`,
+        '/exams/answer-question',
         answerData
       );
       return response.data;
     } catch (error) {
-      console.error(`Error saving answer for exam ${examID}:`, error);
+      console.error(`Error saving answer:`, error);
       throw error;
     }
   }
@@ -83,6 +83,17 @@ class ExamService {
       return response.data;
     } catch (error) {
       console.error(`Error fetching progress for exam ${examID}:`, error);
+      throw error;
+    }
+  }
+
+  // Get in-progress exam for resume functionality
+  async getInProgressExam() {
+    try {
+      const response = await apiService.get('/exams/in-progress');
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching in-progress exam:`, error);
       throw error;
     }
   }

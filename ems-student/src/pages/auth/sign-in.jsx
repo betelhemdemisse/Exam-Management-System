@@ -38,7 +38,7 @@ export function SignIn() {
       style={{ backgroundImage: `url(${bgImage})` }}
     >
       {/* Blue overlay */}
-      <div className="absolute inset-0 bg-blue-900 bg-opacity-80"></div>
+      <div className="absolute inset-0 bg-[#1A1D5F] bg-opacity-80"></div>
 
       {/* Content */}
       <div
@@ -46,14 +46,17 @@ export function SignIn() {
         style={{ backgroundImage: `url(${bgImage})` }}
       >
         {/* Color overlay */}
-        <div className="absolute inset-0 bg-[#1167B4] bg-opacity-80"></div>
+        <div className="absolute inset-0 bg-[#1A1D5F] bg-opacity-80"></div>
 
         {/* Left side */}
         <div className="relative w-1/2 p-12 flex flex-col justify-center text-white">
-          <img src={logo} alt="Logo" className="mb-6 w-24" />
+          <div className="mb-6 w-24 h-24 rounded-full overflow-hidden bg-transparent">
+            <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+          </div>
           <Typography variant="h5" className="mb-4 font-normal leading-relaxed">
-            በአዲስ አበባ ከተማ አስተዳደር የፐብሊክ ሰርቪስና ሰው ሃብት ልማት ቢሮ
-            Addis Ababa City Administration Public Service and Human Resource Development Bureau
+            Ethiopian Artificial Intelligence Institute
+            <br />
+            <span className="text-sm">Exam Portal for Candidates</span>
           </Typography>
           <Typography variant="h2" className="font-bold mb-8">
             Login to account<span className="text-blue-300">.</span>

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
  import PreventInspection from "./securityMeasure/preventInspection";
 import examService from "@/service/exam.service";
-import Ems_logo from "../../assets/img/ems_logo.png";
+import Ems_logo from "../../assets/img/logo.png";
 import Question_mark_vector from "../../assets/img/question_mark_vector.png";
 import SampleProfile from "../../assets/img/sample_profile.png";
 import authService from "@/service/auth.service";
@@ -33,6 +33,22 @@ export function ExamLanding() {
 
   const handleBeginExam = async () => {
     try {
+      // Check for in-progress exam first
+      try {
+        const inProgressExam = await examService.getInProgressExam();
+        if (inProgressExam && inProgressExam.examID) {
+          setModalMessage("You have an exam in progress. Resuming...");
+          setModalOpen(true);
+          setTimeout(() => {
+            localStorage.setItem("currentExamId", inProgressExam.examID);
+            navigate("/exam/questions", { state: inProgressExam });
+          }, 1500);
+          return;
+        }
+      } catch (error) {
+        // No in-progress exam, continue to start new one
+        console.log("No in-progress exam found, starting new exam");
+      }
 
       const createdExam = await examService.createExam();
       if (createdExam?.examID) {
@@ -79,7 +95,7 @@ export function ExamLanding() {
       <div className="flex justify-center p-6 space-y-6 flex-col items-center">
   <div
     className="w-full max-w-7xl text-white p-8 rounded-lg shadow-lg flex flex-col lg:flex-row justify-between items-center"
-    style={{ backgroundColor: "#1167b4" }}
+    style={{ backgroundColor: "#1A1D5F" }}
   >
     <div className="lg:w-2/3">
       <div className="text-sm uppercase tracking-wide mb-2">
@@ -118,7 +134,9 @@ export function ExamLanding() {
     </div>
 
     <div className="lg:w-1/3 flex justify-center mt-6 lg:mt-0">
-      <img src={Ems_logo} alt="Logo" className="max-h-44 object-contain" />
+      <div className="w-32 h-32 rounded-full overflow-hidden bg-transparent">
+        <img src={Ems_logo} alt="Logo" className="w-full h-full object-cover" />
+      </div>
     </div>
   </div>
 
@@ -143,8 +161,8 @@ export function ExamLanding() {
       <button
         onClick={handleBeginExam}
         className="text-white px-6 py-2 rounded transition flex items-center gap-2
-          bg-gradient-to-r from-[#1167B4] to-[#7F7EFF]
-          hover:from-[#0e559a] hover:to-[#6a6de6]"
+          bg-gradient-to-r from-[#1A1D5F] to-[#3A3D7F]
+          hover:from-[#2A2D6F] hover:to-[#4A4D8F]"
       >
         Begin Exam <span className="text-lg">&rarr;</span>
       </button>
