@@ -197,6 +197,9 @@ export function User() {
         hasTakenExam: user.hasTakenExam !== undefined
           ? (user.hasTakenExam ? "Yes" : "No")
           : "N/A",
+        created_at: user.created_at
+          ? new Date(user.created_at).toLocaleString()
+          : "N/A",
       }));
 
 
@@ -360,7 +363,9 @@ export function User() {
                   "Retake",
                   "Type",
                   "Exam Source",
+                  "Log in Code",
                   "Region",
+                  "Created At",
                   "Actions",
                 ].map((header) => (
                   <th key={header} className="p-4">
@@ -419,22 +424,35 @@ export function User() {
                         {user.user_type || user.type}
                       </Typography>
                     </td>
-                     <td className="p-4">
-                     <Typography className="text-sm text-blue-gray-700">
-                          {user.exam_source === "land"
-                             ? "መሬት"
+                    <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700">
+                        {user.exam_source === "land"
+                          ? "መሬት"
                           : user.exam_source === "mesob"
-                           ? "መሶብ"
-                           : "N/A"}
+                            ? "መሶብ"
+                            : "N/A"}
                       </Typography>
 
                     </td>
 
                     <td className="p-4">
                       <Typography className="text-sm text-blue-gray-700">
+                        {user.login_code || user.login_code}
+                      </Typography>
+                    </td>
+                    <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700">
                         {user.region}
                       </Typography>
                     </td>
+                    <td className="p-4">
+                      <Typography className="text-sm text-blue-gray-700">
+                        {user.created_at
+                          ? new Date(user.created_at).toLocaleDateString()
+                          : "N/A"}
+                      </Typography>
+                    </td>
+
                     <td className="p-4 relative">
                       {/* Ellipsis Icon */}
                       <EllipsisVerticalIcon
