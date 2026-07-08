@@ -33,22 +33,6 @@ export function ExamLanding() {
 
   const handleBeginExam = async () => {
     try {
-      // Check for in-progress exam first
-      try {
-        const inProgressExam = await examService.getInProgressExam();
-        if (inProgressExam && inProgressExam.examID) {
-          setModalMessage("You have an exam in progress. Resuming...");
-          setModalOpen(true);
-          setTimeout(() => {
-            localStorage.setItem("currentExamId", inProgressExam.examID);
-            navigate("/exam/questions", { state: inProgressExam });
-          }, 1500);
-          return;
-        }
-      } catch (error) {
-        // No in-progress exam, continue to start new one
-        console.log("No in-progress exam found, starting new exam");
-      }
 
       const createdExam = await examService.createExam();
       if (createdExam?.examID) {

@@ -17,7 +17,6 @@ export function Questions() {
   const [answeredQuestions, setAnsweredQuestions] = useState([]);
   const countdownTimerRef = useRef(null);
   const quizTimerRef = useRef(null);
-  const autoSaveRef = useRef(null);
   const [selectedOptions, setSelectedOptions] = useState({});
 
   const location = useLocation();
@@ -68,14 +67,8 @@ console.log("questionsArray",questionsArray)
       setQuizTime((prev) => prev + 1);
     }, 1000);
 
-    // Periodic auto-save every 30 seconds
-    autoSaveRef.current = setInterval(() => {
-      saveCurrentAnswer();
-    }, 30000);
-
     return () => {
       if (quizTimerRef.current) clearInterval(quizTimerRef.current);
-      if (autoSaveRef.current) clearInterval(autoSaveRef.current);
     };
   }, [showContent]);
 
@@ -125,8 +118,22 @@ const handleLogout = ()=>{
   navigate("/sign-in");
   },1000)
 }
-  const handleNext = async () => {
-    await saveCurrentAnswer();
+  const handleNext = () => {
+    if (selectedOption !== null) {
+      try {
+        const currentExamId = localStorage.getItem("currentExamId");
+        const currentQ = questionsArray[currentQuestion - 1];
+        const savedAnswers = JSON.parse(localStorage.getItem("savedAnswers") || "{}");
+
+        if (!savedAnswers[currentExamId]) savedAnswers[currentExamId] = {};
+
+  savedAnswers[currentExamId][currentQ.exam_questionID] = currentQ.choices[selectedOption].choiceID;
+
+        localStorage.setItem("savedAnswers", JSON.stringify(savedAnswers));
+      } catch (error) {
+        console.error("Error saving answer locally:", error);
+      }
+    }
 
     if (currentQuestion < questionsArray.length) {
       const nextQuestionNumber = currentQuestion + 1;
@@ -154,7 +161,7 @@ const handleLogout = ()=>{
     }
   };
 
-  const handleOptionSelect = async (optionIndex) => {
+  const handleOptionSelect = (optionIndex) => {
     setSelectedOption(optionIndex);
     setSelectedOptions((prev) => ({
       ...prev,
@@ -163,8 +170,6 @@ const handleLogout = ()=>{
     if (!answeredQuestions.includes(currentQuestion)) {
       setAnsweredQuestions([...answeredQuestions, currentQuestion]);
     }
-    // Auto-save to server when option is selected
-    await saveCurrentAnswer();
   };
 
   const handleQuestionNavigation = (questionNumber) => {
@@ -187,38 +192,27 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
   }
 
 
-  const saveCurrentAnswer = async () => {
+  const saveCurrentAnswer = () => {
     if (selectedOption !== null) {
       try {
         const currentExamId = localStorage.getItem("currentExamId");
         const currentQ = questionsArray[currentQuestion - 1];
-        const choiceID = currentQ.choices[selectedOption].choiceID;
-
-        // Save to server first
-        try {
-          await ExamService.saveAnswer({
-            examID: currentExamId,
-            exam_questionID: currentQ.exam_questionID,
-            choiceID: choiceID
-          });
-        } catch (serverError) {
-          console.error("Server save failed, using localStorage fallback:", serverError);
-        }
-
-        // Also save to localStorage as backup
         const savedAnswers = JSON.parse(localStorage.getItem("savedAnswers") || "{}");
+
         if (!savedAnswers[currentExamId]) savedAnswers[currentExamId] = {};
-        savedAnswers[currentExamId][currentQ.exam_questionID] = choiceID;
+
+        savedAnswers[currentExamId][currentQ.exam_questionID] = currentQ.choices[selectedOption].choiceID;
+
         localStorage.setItem("savedAnswers", JSON.stringify(savedAnswers));
       } catch (error) {
-        console.error("Error saving answer:", error);
+        console.error("Error saving answer locally:", error);
       }
     }
   };
 
   const confirmFinish = async () => {
     try {
-      await saveCurrentAnswer();
+      saveCurrentAnswer();
 
       const currentExamId = localStorage.getItem("currentExamId");
       const savedAnswers = JSON.parse(localStorage.getItem("savedAnswers") || "{}");
@@ -239,7 +233,6 @@ const [showUnansweredWarnModal, setShowUnansweredWarnModal] = useState(false);
 
       clearInterval(countdownTimerRef.current);
       clearInterval(quizTimerRef.current);
-      clearInterval(autoSaveRef.current);
       setShowFinishConfirmation(false);
       setShowSuccessModal(true);
     } catch (error) {
