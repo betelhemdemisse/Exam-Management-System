@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
   const navigate = useNavigate();
   const [showWarningModal, setShowWarningModal] = useState(false);
-  const [countdown, setCountdown] = useState(1);
+  const [countdown, setCountdown] = useState(3);
   const countdownRef = useRef(null);
   const isSubmittingRef = useRef(false);
   const isAwayRef = useRef(false);
+  const violationCountRef = useRef(0);
+  const lastViolationTimeRef = useRef(0);
 
   // Auto-submit function - FORCEFUL version
   const handleAutoSubmit = async () => {
@@ -52,9 +54,30 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
     if (isSubmittingRef.current) return;
     if (showWarningModal) return; // Don't show multiple modals
     
+    // Track violations to prevent false positives
+    const now = Date.now();
+    const timeSinceLastViolation = now - lastViolationTimeRef.current;
+    
+    // If violations happen too frequently (within 2 seconds), it's likely a false positive
+    if (timeSinceLastViolation < 2000) {
+      violationCountRef.current++;
+      console.log(`⚠️ Frequent violations detected: ${violationCountRef.current}`);
+      
+      // Allow 3 false positives before actually triggering
+      if (violationCountRef.current < 3) {
+        lastViolationTimeRef.current = now;
+        return;
+      }
+    } else {
+      // Reset count if enough time has passed
+      violationCountRef.current = 0;
+    }
+    
+    lastViolationTimeRef.current = now;
+    
     console.log('⏰ Starting countdown...');
     setShowWarningModal(true);
-    setCountdown(1);
+    setCountdown(3);
     
     if (countdownRef.current) clearInterval(countdownRef.current);
     
@@ -149,19 +172,20 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
     };
   }, [showWarningModal]);
 
-  // METHOD 4: MOUSE LEAVE DETECTION
-  useEffect(() => {
-    const handleMouseLeave = (e) => {
-      if (e.clientY < 0 || e.clientX < 0 || 
-          e.clientX > window.innerWidth || e.clientY > window.innerHeight) {
-        console.log('⚠️ Mouse left the window');
-        startCountdown();
-      }
-    };
+  // METHOD 4: MOUSE LEAVE DETECTION - DISABLED for protected browser compatibility
+  // This causes too many false positives in restricted environments
+  // useEffect(() => {
+  //   const handleMouseLeave = (e) => {
+  //     if (e.clientY < 0 || e.clientX < 0 || 
+  //         e.clientX > window.innerWidth || e.clientY > window.innerHeight) {
+  //       console.log('⚠️ Mouse left the window');
+  //       startCountdown();
+  //     }
+  //   };
 
-    document.addEventListener('mouseleave', handleMouseLeave);
-    return () => document.removeEventListener('mouseleave', handleMouseLeave);
-  }, []);
+  //   document.addEventListener('mouseleave', handleMouseLeave);
+  //   return () => document.removeEventListener('mouseleave', handleMouseLeave);
+  // }, []);
 
   // METHOD 5: DEV TOOLS & KEYBOARD SHORTCUTS
   useEffect(() => {
@@ -192,14 +216,16 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
       }
     };
 
-    // Detect DevTools by window size
+    // Detect DevTools by window size - DISABLED for protected browser compatibility
+    // Protected browsers may have different window dimensions, causing false positives
     const checkDevTools = () => {
-      const threshold = 160;
-      if ((window.outerWidth - window.innerWidth > threshold) || 
-          (window.outerHeight - window.innerHeight > threshold)) {
-        console.log('🔧 DevTools detected by window size!');
-        handleAutoSubmit();
-      }
+      // Disabled - causes false positives in protected browsers
+      // const threshold = 160;
+      // if ((window.outerWidth - window.innerWidth > threshold) || 
+      //     (window.outerHeight - window.innerHeight > threshold)) {
+      //   console.log('🔧 DevTools detected by window size!');
+      //   handleAutoSubmit();
+      // }
     };
 
     document.addEventListener('contextmenu', handleContextMenu);

@@ -62,7 +62,16 @@ export function Questions() {
     if (!showContent || !questionsArray.length || initialLoadDone.current) return;
 
     try {
-      const savedAnswers = JSON.parse(localStorage.getItem("savedAnswers") || "{}");
+      let savedAnswers = {};
+      try {
+        const stored = localStorage.getItem("savedAnswers");
+        if (stored) {
+          savedAnswers = JSON.parse(stored);
+        }
+      } catch (e) {
+        console.warn("localStorage access restricted during load, starting fresh");
+      }
+      
       const examAnswers = savedAnswers[examId] || {};
       
       // Store all answers in ref
@@ -168,21 +177,31 @@ export function Questions() {
         return;
       }
       
-      // Get existing saved answers
+      // Get existing saved answers with localStorage error handling
       let savedAnswers = {};
       try {
-        savedAnswers = JSON.parse(localStorage.getItem("savedAnswers") || "{}");
+        const stored = localStorage.getItem("savedAnswers");
+        if (stored) {
+          savedAnswers = JSON.parse(stored);
+        }
       } catch (e) {
-        savedAnswers = {};
+        console.warn("localStorage access restricted, using in-memory storage only");
+        // Fallback to in-memory only if localStorage fails
       }
       
       if (!savedAnswers[examId]) savedAnswers[examId] = {};
       
       // Save the answer
       savedAnswers[examId][currentQ.exam_questionID] = choiceID;
-      localStorage.setItem("savedAnswers", JSON.stringify(savedAnswers));
       
-      // Update ref - THIS IS CRITICAL
+      // Try to save to localStorage, but don't fail if restricted
+      try {
+        localStorage.setItem("savedAnswers", JSON.stringify(savedAnswers));
+      } catch (e) {
+        console.warn("localStorage write restricted, answer saved in memory only");
+      }
+      
+      // Update ref - THIS IS CRITICAL (always works)
       answersRef.current[currentQ.exam_questionID] = choiceID;
       
       console.log(`✅ SAVED: Question ${questionIndex + 1} -> ${choiceID}`);

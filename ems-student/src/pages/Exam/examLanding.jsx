@@ -21,7 +21,7 @@ export function ExamLanding() {
         setCurrentUser(user);
       } else {
         console.log("No user is currently logged in.");
-      }
+      } 
     } catch (error) {
       console.error("Error fetching current user:", error);
     }
@@ -36,19 +36,30 @@ export function ExamLanding() {
 
       const createdExam = await examService.createExam();
       if (createdExam?.examID) {
-        localStorage.setItem("currentExamId", createdExam.examID);
+        try {
+          localStorage.setItem("currentExamId", createdExam.examID);
+        } catch (e) {
+          console.warn("localStorage restricted, continuing without storage");
+        }
       }
 
+      // Try fullscreen with error handling for protected browsers
       const elem = document.documentElement;
-      if (elem.requestFullscreen) {
-        await elem.requestFullscreen();
-      } else if (elem.mozRequestFullScreen) {
-        await elem.mozRequestFullScreen();
-      } else if (elem.webkitRequestFullscreen) {
-        await elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) {
-        await elem.msRequestFullscreen();
+      try {
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          await elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+          await elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          await elem.msRequestFullscreen();
+        }
+      } catch (fullscreenError) {
+        console.warn("Fullscreen not available or blocked by browser, continuing anyway");
+        // Don't block exam start if fullscreen fails
       }
+      
    navigate("/exam/questions", { state: createdExam });
 
     } catch (error) {
@@ -133,12 +144,18 @@ export function ExamLanding() {
           <p className="font-medium">{currentUser?.name}</p>
         </div>
         <div>
-          <p className="text-gray-500 text-sm">Company</p>
+          {currentUser?.company && ( <>
+            <p className="text-gray-500 text-sm">Company</p>
           <p className="font-medium">{currentUser?.company}</p>
+          </>)
+          }
+         
         </div>
         <div>
-          <p className="text-gray-500 text-sm">Position</p>
-          <p className="font-medium">{currentUser?.position}</p>
+          {currentUser?.position &&(<>
+           <p className="text-gray-500 text-sm">Position</p>
+          <p className="font-medium">{currentUser?.position}</p></>)}
+         
         </div>
 
       </div>
