@@ -174,8 +174,7 @@ export function QuestionBank() {
                         onChange={(value) => handleFilterChange("examSource", value)}
                     >
                         <Option value="all">All</Option>
-                        <Option value="mesob">መሶብ</Option>
-                        <Option value="land">መሬት</Option>
+                        <Option value="ai">AI</Option>
                         <Option value="na">N/A</Option>
                     </Select>
                 </div>

@@ -22,7 +22,7 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
         year_of_experience: 0,
         gender: "",
         region: "",
-        user_type: "junior",
+        user_type: "data_encoder", // Changed default from "junior" to "data_encoder"
         exam_source: "",
     });
 
@@ -43,6 +43,15 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
                         return;
                     }
 
+                    // Map old values to new ones if needed
+                    let userType = user.user_type || "data_encoder";
+                    // If the user has old values (junior/experienced), map them to new ones
+                    if (userType === "junior") {
+                        userType = "data_encoder";
+                    } else if (userType === "experienced") {
+                        userType = "supervisor";
+                    }
+
                     setFormData({
                         name: user.name || "",
                         email: user.email || "",
@@ -53,7 +62,7 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
                         year_of_experience: user.year_of_experience || 0,
                         gender: user.gender || "",
                         region: user.region || "",
-                        user_type: user.user_type || "junior",
+                        user_type: userType, // Updated to use mapped value
                         exam_source: user.exam_source || "",
                     });
                 } catch (error) {
@@ -94,7 +103,7 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
     return (
         <Dialog open={open} handler={onClose} size="md">
             <DialogHeader>Edit User</DialogHeader>
-            <DialogBody divider>
+            <DialogBody divider className="max-h-[70vh] overflow-y-auto">
                 {loading ? (
                     <p className="text-gray-500">Loading...</p>
                 ) : (
@@ -163,21 +172,28 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
                             onChange={handleChange}
                         />
 
+                        {/* Updated User Type Select - Changed from Junior/Experienced to Data Encoder/Supervisor */}
                         <Select
                             label="User Type"
                             value={formData.user_type}
                             onChange={(val) => handleSelectChange("user_type", val)}
                         >
-                            <Option value="junior">Junior</Option>
-                            <Option value="experienced">Experienced</Option>
+                            <Option value="data_encoder">Data Encoder</Option>
+                            <Option value="supervisor">Supervisor</Option>
                         </Select>
-                         <Select
+
+                        {/* Fix: material-tailwind's Select fails to display the selected label
+                            when there's only a single Option (known library bug). Adding a second
+                            Option — here a disabled placeholder — gives its internal value-matching
+                            logic something to compare against and resolves the display issue. */}
+                        <Select
+                            key={formData.exam_source}
                             label="Exam Source"
                             value={formData.exam_source}
                             onChange={(val) => handleSelectChange("exam_source", val)}
                         >
-                            <Option value="mesob">መሶብ</Option>
-                            <Option value="land">መሬት</Option>
+                            <Option value="" disabled>Select source</Option>
+                            <Option value="ai">AI</Option>
                         </Select>
                     </div>
                 )}

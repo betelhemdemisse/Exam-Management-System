@@ -328,8 +328,7 @@ export function User() {
             sx={{ width: 150 }}
           >
             <Option value="">All</Option>
-            <Option value="mesob">መሶብ</Option>
-            <Option value="land">መሬት</Option>
+            <Option value="ai">AI</Option>
             <Option value="N/A">N/A</Option>
           </Select>
 
@@ -426,11 +425,9 @@ export function User() {
                     </td>
                     <td className="p-4">
                       <Typography className="text-sm text-blue-gray-700">
-                        {user.exam_source === "land"
-                          ? "መሬት"
-                          : user.exam_source === "mesob"
-                            ? "መሶብ"
-                            : "N/A"}
+                        {user.exam_source === "ai"
+                          ? "AI"
+                          : "N/A"}
                       </Typography>
 
                     </td>

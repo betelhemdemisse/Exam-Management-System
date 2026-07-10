@@ -50,7 +50,7 @@ export default function CreateUserModal({ open, onClose, onUserCreated }) {
                 year_of_experience: "",
                 gender: "",
                 region: "",
-                user_type: "individual",
+                user_type: "",
                 exam_source: ""
             });
         } catch (error) {
@@ -82,14 +82,16 @@ export default function CreateUserModal({ open, onClose, onUserCreated }) {
 
                     <Input label="Region" name="region" value={formData.region} onChange={handleChange} />
 
+                    {/* Updated User Type Select - Changed from Junior/Experienced to Data Encoder/Supervisor */}
                     <Select label="User Type" value={formData.user_type} onChange={(val) => setFormData((prev) => ({ ...prev, user_type: val }))}>
-                        <Option value="junior">Junior</Option>
-                        <Option value="experienced">Experienced</Option>
+                        <Option value="data_encoder">Data Encoder</Option>
+                        <Option value="supervisor">Supervisor</Option>
                     </Select>
+                    
                     <Select label="Exam Source" value={formData.exam_source} onChange={(val) => setFormData((prev) => ({ ...prev, exam_source: val }))}>
-                        <Option value="mesob">መሶብ</Option>
-                        <Option value="land">መሬት</Option>
+                        <Option value="ai">AI</Option>
                     </Select>
+                    
                     <Input
                         label="Password"
                         type="password"

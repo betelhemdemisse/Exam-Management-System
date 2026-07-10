@@ -134,14 +134,12 @@ export default function ExamConfigurations() {
                     <td className="p-4">{cfg.total_questions}</td>
                     <td className="p-4">{cfg.pass_mark}</td>
                     <td className="p-4">{cfg.duration_minutes}</td>
-                    <td className="p-4">{cfg.exam_type}</td>
-                    <td className="p-4">
-                       {cfg.exam_source === "land"
-                             ? "መሬት"
-                          : cfg.exam_source === "mesob"
-                           ? "መሶብ"
+                    <td className="p-4">{cfg.exam_type === "data_encoder" ? "Data Encoder" : cfg.exam_type === "supervisor" ? "Supervisor" : "N/A"}</td>
+                     <td className="p-4">
+                        {cfg.exam_source === "ai"
+                           ? "AI"
                            : "N/A"}
-                    </td>
+                     </td>
                     <td className="p-4">{cfg.allow_retake ? "Yes" : "No"}</td>
                     <td className="p-4">{cfg.show_timer_warning ? "Yes" : "No"}</td>
                     <td className="p-4 flex gap-2">

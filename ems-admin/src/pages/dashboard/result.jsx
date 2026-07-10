@@ -36,13 +36,12 @@ export function Result() {
 
 
     const examSourceLabels = {
-        mesob: "መሶብ",
-        land: "መሬት",
+        ai: "AI",
     };
 
     const userTypeLabels = {
-        experienced: "Experienced",
-        junior: "Junior",
+        data_encoder: "Data Encoder",
+        supervisor: "Supervisor",
     };
     const rowsPerPage = 10;
     const [page, setPage] = useState(0);
@@ -255,11 +254,7 @@ export function Result() {
                     onChange={(value) => handleFilterChange("exam_source", value)}
                 >
                     <Option value="">All</Option>
-                    {uniqueExamSources.map((src, i) => (
-                        <Option key={i} value={src || "N/A"}>
-                            {examSourceLabels[src] || src || "N/A"}
-                        </Option>
-                    ))}
+                    <Option value="ai">AI</Option>
                 </Select>
 
 
@@ -290,8 +285,8 @@ export function Result() {
                     onChange={(value) => handleFilterChange("type", value)}
                 >
                     <Option value="">All</Option>
-                    <Option value="junior">Junior</Option>
-                    <Option value="experienced">Experienced</Option>
+                    <Option value="data_encoder">Data Encoder</Option>
+                    <Option value="supervisor">Supervisor</Option>
                 </Select>
 
                 <Select

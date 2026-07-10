@@ -116,7 +116,7 @@ export default function BeginExam() {
                                 {configs.map((cfg, index) => (
                                     <tr key={cfg.configID} className="hover:bg-blue-gray-50 transition-colors">
                                         <td className="p-4">{index + 1}</td>
-                                        <td className="p-4">{cfg.exam_type}</td>
+                                        <td className="p-4">{cfg.exam_type === "data_encoder" ? "Data Encoder" : cfg.exam_type === "supervisor" ? "Supervisor" : "N/A"}</td>
                                         <td className="p-4">{cfg.exam_source}</td>
                                         <td className="p-4">
                                             <Tooltip content={cfg.allow_start ? "Currently ON" : "Currently OFF"}>
