@@ -22,7 +22,7 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
         year_of_experience: 0,
         gender: "",
         region: "",
-        user_type: "junior",
+        user_type: "data_encoder",
         exam_source: "",
     });
 
@@ -168,16 +168,15 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
                             value={formData.user_type}
                             onChange={(val) => handleSelectChange("user_type", val)}
                         >
-                            <Option value="junior">Junior</Option>
-                            <Option value="experienced">Experienced</Option>
+                            <Option value="data_encoder">Data Encoder</Option>
+                            <Option value="supervisor">Supervisor</Option>
                         </Select>
                          <Select
                             label="Exam Source"
                             value={formData.exam_source}
                             onChange={(val) => handleSelectChange("exam_source", val)}
                         >
-                            <Option value="mesob">መሶብ</Option>
-                            <Option value="land">መሬት</Option>
+                            <Option value="EAII">EAII</Option>
                         </Select>
                     </div>
                 )}

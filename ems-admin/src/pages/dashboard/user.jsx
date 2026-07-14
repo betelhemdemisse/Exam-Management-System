@@ -222,6 +222,43 @@ export function User() {
     }
   };
 
+  const handleDownloadSampleTemplate = () => {
+    try {
+      const sampleData = [
+        {
+          name: "John Doe",
+          email: "john.doe@example.com",
+          company: "Example Company",
+          position: "Software Engineer",
+          year_of_experience: 5,
+          gender: "male",
+          region: "Addis Ababa",
+          user_type: "data_encoder",
+          exam_source: "EAII"
+        },
+        {
+          name: "Jane Smith",
+          email: "jane.smith@example.com",
+          company: "Example Company",
+          position: "Data Analyst",
+          year_of_experience: 3,
+          gender: "female",
+          region: "Addis Ababa",
+          user_type: "supervisor",
+          exam_source: "EAII"
+        }
+      ];
+
+      const ws = XLSX.utils.json_to_sheet(sampleData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Users");
+
+      XLSX.writeFile(wb, "user_import_template.xlsx", { bookType: "xlsx", type: "array" });
+    } catch (error) {
+      console.error("Failed to download sample template:", error);
+    }
+  };
+
 
 
 
@@ -304,48 +341,56 @@ export function User() {
         ref={fileInputRef}
         className="hidden"
         onChange={handleImportUser}
-      /><div className="flex items-center justify-between px-4 space-x-2">
-        <div className="w-56">
-          <Input label="Search User" value={search} onChange={(e) => setSearch(e.target.value)} />
-        </div>
+      />
+      <div className="px-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="w-64">
+              <Input label="Search User" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
 
-        <div className="flex items-center space-x-2">
-          <Select
-            label="Exam Status"
-            value={filters.examStatus}
-            onChange={(value) => handleFilterChange("examStatus", value)}
-            sx={{ width: 150 }}
-          >
-            <Option value="">All Users</Option>
-            <Option value="taken">Attended</Option>
-            <Option value="not_taken">Absent</Option>
-          </Select>
+            <div className="w-40 mr-8">
+              <Select
+                label="Exam Status"
+                value={filters.examStatus}
+                onChange={(value) => handleFilterChange("examStatus", value)}
+              >
+                <Option value="">All Users</Option>
+                <Option value="taken">Attended</Option>
+                <Option value="not_taken">Absent</Option>
+              </Select>
+            </div>
 
-          <Select
-            label="Exam Source"
-            value={filters.examSource}
-            onChange={(value) => handleFilterChange("examSource", value)}
-            sx={{ width: 150 }}
-          >
-            <Option value="">All</Option>
-            <Option value="mesob">መሶብ</Option>
-            <Option value="land">መሬት</Option>
-            <Option value="N/A">N/A</Option>
-          </Select>
+            <div className="w-40">
+              <Select
+                label="Exam Source"
+                value={filters.examSource}
+                onChange={(value) => handleFilterChange("examSource", value)}
+              >
+                <Option value="">All</Option>
+                <Option value="EAII">EAII</Option>
+                <Option value="N/A">N/A</Option>
+              </Select>
+            </div>
+          </div>
 
+          <div className="flex flex-wrap items-center gap-3">
+            <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white" onClick={handleDownloadSampleTemplate}>
+              Download Template
+            </Button>
 
+            <Button size="sm" className="bg-[#1A1D5F] hover:bg-[#2A2D6F] text-white" onClick={handleImportClick}>
+              Import
+            </Button>
 
-          <Button size="sm" color="blue" onClick={handleImportClick}>
-            Import
-          </Button>
+            <Button size="sm" className="bg-[#1A1D5F] hover:bg-[#2A2D6F] text-white" onClick={() => handleExportClick(filters)}>
+              Export
+            </Button>
 
-          <Button size="sm" color="green" onClick={() => handleExportClick(filters)}>
-            Export
-          </Button>
-
-          <Button className="w-40" size="sm" color="purple" sx={{ width: 120 }} onClick={() => setOpenCreateModal(true)}>
-            Add User
-          </Button>
+            <Button className="bg-orange-500 hover:bg-orange-600 text-white" size="sm" onClick={() => setOpenCreateModal(true)}>
+              Add User
+            </Button>
+          </div>
         </div>
       </div>
       {/* Users Table */}
@@ -426,11 +471,7 @@ export function User() {
                     </td>
                     <td className="p-4">
                       <Typography className="text-sm text-blue-gray-700">
-                        {user.exam_source === "land"
-                          ? "መሬት"
-                          : user.exam_source === "mesob"
-                            ? "መሶብ"
-                            : "N/A"}
+                        {user.exam_source || "N/A"}
                       </Typography>
 
                     </td>

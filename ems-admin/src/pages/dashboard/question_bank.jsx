@@ -143,6 +143,49 @@ export function QuestionBank() {
         setShowDialog(false);
     };
 
+    const handleDownloadSampleTemplate = () => {
+        try {
+            const sampleData = [
+                {
+                    question_text: "What is the capital of Ethiopia?",
+                    question_type: "data_encoder",
+                    category: "Geography",
+                    difficulty: "Easy",
+                    choices: JSON.stringify([
+                        { label: "A", choice_text: "Addis Ababa" },
+                        { label: "B", choice_text: "Dire Dawa" },
+                        { label: "C", choice_text: "Mekelle" },
+                        { label: "D", choice_text: "Bahir Dar" }
+                    ]),
+                    correct_choice_labels: "A",
+                    exam_source: "EAII"
+                },
+                {
+                    question_text: "Which programming language is used for React?",
+                    question_type: "supervisor",
+                    category: "Programming",
+                    difficulty: "Medium",
+                    choices: JSON.stringify([
+                        { label: "A", choice_text: "Python" },
+                        { label: "B", choice_text: "JavaScript" },
+                        { label: "C", choice_text: "Java" },
+                        { label: "D", choice_text: "C++" }
+                    ]),
+                    correct_choice_labels: "B",
+                    exam_source: "EAII"
+                }
+            ];
+
+            const ws = XLSX.utils.json_to_sheet(sampleData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Questions");
+
+            XLSX.writeFile(wb, "question_import_template.xlsx", { bookType: "xlsx", type: "array" });
+        } catch (error) {
+            console.error("Failed to download sample template:", error);
+        }
+    };
+
     const filteredQuestions = questions.filter((q) => {
         if (filters.examSource && filters.examSource !== "all") {
             if (filters.examSource === "na") {
@@ -174,8 +217,7 @@ export function QuestionBank() {
                         onChange={(value) => handleFilterChange("examSource", value)}
                     >
                         <Option value="all">All</Option>
-                        <Option value="mesob">መሶብ</Option>
-                        <Option value="land">መሬት</Option>
+                        <Option value="EAII">EAII</Option>
                         <Option value="na">N/A</Option>
                     </Select>
                 </div>
@@ -184,12 +226,15 @@ export function QuestionBank() {
                 <div className="flex gap-2">
                     <Button
                         size="sm"
-                        color="green"
+                        className="bg-orange-500 hover:bg-orange-600 text-white"
                         onClick={() => setCreateModalOpen(true)}
                     >
                         + Create Question
                     </Button>
-                    <Button size="sm" color="blue" onClick={handleImportClick}>
+                    <Button size="sm" className="bg-[#1A1D5F] hover:bg-[#2A2D6F] text-white" onClick={handleDownloadSampleTemplate}>
+                        Download Template
+                    </Button>
+                    <Button size="sm" className="bg-[#1A1D5F] hover:bg-[#2A2D6F] text-white" onClick={handleImportClick}>
                         Import
                     </Button>
                 </div>

@@ -136,11 +136,7 @@ export default function ExamConfigurations() {
                     <td className="p-4">{cfg.duration_minutes}</td>
                     <td className="p-4">{cfg.exam_type}</td>
                     <td className="p-4">
-                       {cfg.exam_source === "land"
-                             ? "መሬት"
-                          : cfg.exam_source === "mesob"
-                           ? "መሶብ"
-                           : "N/A"}
+                       {cfg.exam_source || "N/A"}
                     </td>
                     <td className="p-4">{cfg.allow_retake ? "Yes" : "No"}</td>
                     <td className="p-4">{cfg.show_timer_warning ? "Yes" : "No"}</td>

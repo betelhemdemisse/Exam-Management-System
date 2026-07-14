@@ -18,7 +18,7 @@ export default function CreateQuestionModal({ open, onClose, onCreated }) {
     const [category, setCategory] = useState("");
     const [exam_source, setExamSource] = useState("");
     const [difficulty, setDifficulty] = useState("Easy");
-    const [questionType, setQuestionType] = useState("junior");
+    const [questionType, setQuestionType] = useState("data_encoder");
     const [choices, setChoices] = useState([
         { label: "A", choice_text: "", isCorrect: false },
         { label: "B", choice_text: "", isCorrect: false },
@@ -114,15 +114,14 @@ export default function CreateQuestionModal({ open, onClose, onCreated }) {
                     <div className="flex-1">
                         <Typography variant="small" className="mb-1 font-medium">Question Type</Typography>
                         <Select value={questionType} onChange={(val) => setQuestionType(val)}>
-                            <Option value="junior">Junior</Option>
-                            <Option value="experienced">Experienced</Option>
+                            <Option value="data_encoder">Data Encoder</Option>
+                            <Option value="supervisor">Supervisor</Option>
                         </Select>
                     </div>
                      <div className="flex-1">
                         <Typography variant="small" className="mb-1 font-medium">Exam Source</Typography>
                         <Select value={exam_source} onChange={(val) => setExamSource(val)}>
-                          <Option value="mesob">መሶብ</Option>
-                        <Option value="land">መሬት</Option>
+                          <Option value="EAII">EAII</Option>
                         </Select>
                     </div>
                 </div>

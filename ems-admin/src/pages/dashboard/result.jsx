@@ -36,13 +36,12 @@ export function Result() {
 
 
     const examSourceLabels = {
-        mesob: "መሶብ",
-        land: "መሬት",
+        EAII: "EAII",
     };
 
     const userTypeLabels = {
-        experienced: "Experienced",
-        junior: "Junior",
+        supervisor: "Supervisor",
+        data_encoder: "Data Encoder",
     };
     const rowsPerPage = 10;
     const [page, setPage] = useState(0);
@@ -290,8 +289,8 @@ export function Result() {
                     onChange={(value) => handleFilterChange("type", value)}
                 >
                     <Option value="">All</Option>
-                    <Option value="junior">Junior</Option>
-                    <Option value="experienced">Experienced</Option>
+                    <Option value="data_encoder">Data Encoder</Option>
+                    <Option value="supervisor">Supervisor</Option>
                 </Select>
 
                 <Select

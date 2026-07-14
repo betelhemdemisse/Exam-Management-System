@@ -18,7 +18,7 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
     const [questionText, setQuestionText] = useState("");
     const [category, setCategory] = useState("");
     const [difficulty, setDifficulty] = useState("Easy");
-    const [questionType, setQuestionType] = useState("junior");
+    const [questionType, setQuestionType] = useState("data_encoder");
     const [choices, setChoices] = useState([]);
 
     // Fetch question data when modal opens
@@ -32,7 +32,7 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
                     setQuestionText(data.question_text);
                     setCategory(data.category || "");
                     setDifficulty(data.difficulty || "Easy");
-                    setQuestionType(data.question_type || "junior");
+                    setQuestionType(data.question_type || "data_encoder");
 
                     const correctLabels = data.correctAnswers?.map(a => a.label) || [];
                     const formattedChoices = data.choices?.map((c) => ({
@@ -134,8 +134,8 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
                             <div className="flex-1">
                                 <Typography variant="small" className="mb-1 font-medium">Question Type</Typography>
                                 <Select value={questionType} onChange={(val) => setQuestionType(val)}>
-                                    <Option value="junior">Junior</Option>
-                                    <Option value="experienced">Experienced</Option>
+                                    <Option value="data_encoder">Data Encoder</Option>
+                                    <Option value="supervisor">Supervisor</Option>
                                 </Select>
                             </div>
                         </div>

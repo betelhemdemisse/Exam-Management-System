@@ -123,8 +123,8 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
                 }}
               >
                 <MenuItem value="">Select Exam Type</MenuItem>
-                <MenuItem value="experienced">Experienced</MenuItem>
-                <MenuItem value="junior">Junior</MenuItem>
+                <MenuItem value="supervisor">Supervisor</MenuItem>
+                <MenuItem value="data_encoder">Data Encoder</MenuItem>
               </Select>
 
             </FormControl>
@@ -140,8 +140,7 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
                 }}
               >
                 <MenuItem value="">Select Exam Type</MenuItem>
-                <MenuItem value="land">መሬት</MenuItem>
-                <MenuItem value="mesob">መሶብ</MenuItem>
+                <MenuItem value="EAII">EAII</MenuItem>
               </Select>
 
             </FormControl>
