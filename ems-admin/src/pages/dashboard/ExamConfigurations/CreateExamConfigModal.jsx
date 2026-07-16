@@ -151,12 +151,12 @@ export default function CreateExamConfigModal({ open, onClose, onSave }) {
               checked={formData.allow_retake}
               onChange={handleChange}
             />
-            <Checkbox
+            {/* <Checkbox
               label="Show Timer Warning"
               name="show_timer_warning"
               checked={formData.show_timer_warning}
               onChange={handleChange}
-            />
+            /> */}
           </div>
         </DialogBody>
         <DialogFooter>

@@ -76,15 +76,21 @@ class QuestionService {
   }
 
    // Delete a question and all related data
-  async deleteQuestion(id) {
+async deleteQuestion(id) {
+    console.log(`🗑️ DELETE request for question ID: ${id}`);
     try {
-      const response = await apiService.delete(`/questions/${id}`);
-      return response.data;
+        const response = await apiService.delete(`/questions/${id}`);
+        console.log("✅ DELETE response:", response.data);
+        return response.data;
     } catch (error) {
-      console.error(`Error deleting question with ID ${id}:`, error);
-      throw error;
+        console.error(`❌ Error deleting question with ID ${id}:`, error);
+        if (error.response) {
+            console.error("Response status:", error.response.status);
+            console.error("Response data:", error.response.data);
+        }
+        throw error;
     }
-  }
+}
 }
 
 export default new QuestionService();

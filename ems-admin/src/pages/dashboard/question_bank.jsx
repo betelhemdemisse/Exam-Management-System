@@ -11,8 +11,9 @@ import {
     Select,
     Option
 } from "@material-tailwind/react";
-import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, ChevronUpIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import * as XLSX from "xlsx";
+import toast, { Toaster } from 'react-hot-toast';
 import QuestionService from "../../service/question.service";
 import CreateQuestionModal from "../dashboard/question modal/CreateQuestionModal";
 import EditQuestionModal from "../dashboard/question modal/EditQuestionModal";
@@ -26,6 +27,10 @@ export function QuestionBank() {
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [selectedQuestionId, setSelectedQuestionId] = useState(null);
+    
+    // Delete confirmation modal state
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [questionToDelete, setQuestionToDelete] = useState(null);
 
     const [filters, setFilters] = useState({
         examSource: "",
@@ -44,7 +49,7 @@ export function QuestionBank() {
 
     const handleFilterChange = (key, value) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
-        setPage(0); // reset pagination when filtering
+        setPage(0);
     };
 
     useEffect(() => {
@@ -70,6 +75,7 @@ export function QuestionBank() {
                 setQuestions(processedQuestions);
             } catch (error) {
                 console.error("Failed to fetch questions:", error);
+                toast.error("Failed to load questions");
             }
         };
         fetchQuestions();
@@ -102,11 +108,13 @@ export function QuestionBank() {
 
                 setNewQuestions(parsedQuestions);
                 setShowDialog(true);
+                toast.success(`Successfully parsed ${parsedQuestions.length} questions`);
             };
 
             reader.readAsBinaryString(file);
         } catch (error) {
             console.error("Failed to import questions:", error);
+            toast.error("Failed to parse import file. Please check the format.");
         }
     };
 
@@ -119,28 +127,56 @@ export function QuestionBank() {
             setNewQuestions([]);
             setImportFile(null);
             setShowDialog(false);
+            toast.success(`Successfully imported ${newQuestions.length} questions`);
         } catch (error) {
             console.error("Failed to save imported questions:", error);
+            toast.error("Failed to import questions. Please try again.");
         }
     };
 
-    const handleDeleteQuestion = async (id) => {
-        const confirmed = window.confirm("Are you sure you want to delete this question?");
-        if (!confirmed) return;
+    // Updated delete handler - shows modal instead of confirm
+// Updated delete handler with debugging
+const handleDeleteClick = (id) => {
+    console.log("🔄 Delete clicked for question ID:", id);
+    setQuestionToDelete(id);
+    setDeleteModalOpen(true);
+};
 
-        try {
-            await QuestionService.deleteQuestion(id);
-            setQuestions((prev) => prev.filter((q) => q.questionID !== id));
-        } catch (error) {
-            console.error("Failed to delete question:", error);
-            alert("Failed to delete question. Please try again.");
-        }
+// Actual delete execution with debugging
+const handleConfirmDelete = async () => {
+    if (!questionToDelete) {
+        console.error("❌ No question ID to delete");
+        return;
+    }
+    
+    console.log("🗑️ Attempting to delete question with ID:", questionToDelete);
+    
+    try {
+        await QuestionService.deleteQuestion(questionToDelete);
+        console.log("✅ Question deleted successfully");
+        setQuestions((prev) => {
+            const filtered = prev.filter((q) => q.questionID !== questionToDelete);
+            console.log(`📊 Questions remaining: ${filtered.length}`);
+            return filtered;
+        });
+        toast.success("Question deleted successfully");
+        setDeleteModalOpen(false);
+        setQuestionToDelete(null);
+    } catch (error) {
+        console.error("❌ Failed to delete question:", error);
+        toast.error("Failed to delete question. Please try again.");
+    }
+};
+
+    const handleCancelDelete = () => {
+        setDeleteModalOpen(false);
+        setQuestionToDelete(null);
     };
-
 
     const handleCancelImport = () => {
         setNewQuestions([]);
         setShowDialog(false);
+        toast("Import cancelled");
     };
 
     const handleDownloadSampleTemplate = () => {
@@ -181,24 +217,92 @@ export function QuestionBank() {
             XLSX.utils.book_append_sheet(wb, ws, "Questions");
 
             XLSX.writeFile(wb, "question_import_template.xlsx", { bookType: "xlsx", type: "array" });
+            toast.success("Template downloaded successfully");
         } catch (error) {
             console.error("Failed to download sample template:", error);
+            toast.error("Failed to download template");
         }
     };
 
     const filteredQuestions = questions.filter((q) => {
         if (filters.examSource && filters.examSource !== "all") {
             if (filters.examSource === "na") {
-                return !q.exam_source; // only those with no exam_source
+                return !q.exam_source;
             }
             return q.exam_source?.toLowerCase() === filters.examSource.toLowerCase();
         }
         return true;
     });
 
-
     return (
         <div className="mt-12 mb-8 flex flex-col gap-6">
+            {/* Toaster component */}
+            <Toaster 
+                position="top-right"
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        background: '#363636',
+                        color: '#fff',
+                    },
+                    success: {
+                        duration: 3000,
+                        style: {
+                            background: '#22c55e',
+                            color: '#fff',
+                        },
+                        iconTheme: {
+                            primary: '#fff',
+                            secondary: '#22c55e',
+                        },
+                    },
+                    error: {
+                        duration: 4000,
+                        style: {
+                            background: '#ef4444',
+                            color: '#fff',
+                        },
+                        iconTheme: {
+                            primary: '#fff',
+                            secondary: '#ef4444',
+                        },
+                    },
+                }}
+            />
+
+            {/* Delete Confirmation Modal */}
+            <Dialog open={deleteModalOpen} handler={handleCancelDelete} size="sm">
+                <DialogHeader className="flex items-center gap-2 text-red-600">
+                    <ExclamationTriangleIcon className="h-6 w-6" />
+                    Delete Question
+                </DialogHeader>
+                <DialogBody className="py-4">
+                    <Typography className="text-gray-700">
+                        Are you sure you want to delete this question? This action cannot be undone.
+                    </Typography>
+                    <Typography className="text-sm text-gray-500 mt-2">
+                        This will permanently remove the question and all its associated data.
+                    </Typography>
+                </DialogBody>
+                <DialogFooter className="gap-2">
+                    <Button 
+                        variant="text" 
+                        color="blue-gray" 
+                        onClick={handleCancelDelete}
+                        className="font-medium"
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        color="red" 
+                        onClick={handleConfirmDelete}
+                        className="bg-red-600 hover:bg-red-700"
+                    >
+                        Delete
+                    </Button>
+                </DialogFooter>
+            </Dialog>
+
             {/* Hidden file input */}
             <input
                 type="file"
@@ -239,7 +343,6 @@ export function QuestionBank() {
                     </Button>
                 </div>
             </div>
-
 
             {/* Questions table */}
             <Card shadow={false} className="border border-blue-gray-100">
@@ -325,12 +428,11 @@ export function QuestionBank() {
                                                         variant="text"
                                                         size="sm"
                                                         color="red"
-                                                        onClick={() => handleDeleteQuestion(q.questionID)}
+                                                        onClick={() => handleDeleteClick(q.questionID)}
                                                     >
                                                         Delete
                                                     </Button>
                                                 </div>
-
                                             </td>
                                         </tr>
 
@@ -440,7 +542,7 @@ export function QuestionBank() {
             <CreateQuestionModal
                 open={createModalOpen}
                 onClose={() => setCreateModalOpen(false)}
-                onCreated={(newQ) =>
+                onCreated={(newQ) => {
                     setQuestions((prev) => [
                         ...prev,
                         {
@@ -455,8 +557,9 @@ export function QuestionBank() {
                                     .join(", ") ||
                                 "",
                         },
-                    ])
-                }
+                    ]);
+                    toast.success("Question created successfully!");
+                }}
             />
             <EditQuestionModal
                 open={editModalOpen}
@@ -474,6 +577,7 @@ export function QuestionBank() {
                                 : q
                         )
                     );
+                    toast.success("Question updated successfully!");
                 }}
             />
         </div>

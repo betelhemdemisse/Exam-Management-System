@@ -9,6 +9,7 @@ import {
     Select,
     Option
 } from "@material-tailwind/react";
+import toast from 'react-hot-toast';
 import UserService from "../../../service/user.service";
 
 const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
@@ -22,26 +23,20 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
         year_of_experience: 0,
         gender: "",
         region: "",
-        user_type: "data_encoder",
+        user_type: "",
         exam_source: "",
     });
 
     const [loading, setLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (open && userId) {
-            console.log("Edit modal opened with userId:", userId);
-
             const fetchUser = async () => {
                 try {
                     setLoading(true);
                     const user = await UserService.getUserById(userId);
                     console.log("Fetched user data:", user);
-
-                    if (!user) {
-                        console.warn("No user found for ID:", userId);
-                        return;
-                    }
 
                     setFormData({
                         name: user.name || "",
@@ -53,19 +48,18 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
                         year_of_experience: user.year_of_experience || 0,
                         gender: user.gender || "",
                         region: user.region || "",
-                        user_type: user.user_type || "junior",
+                        user_type: user.user_type || "",
                         exam_source: user.exam_source || "",
                     });
                 } catch (error) {
                     console.error("Failed to fetch user:", error);
+                    toast.error("Failed to load user data");
                 } finally {
                     setLoading(false);
                 }
             };
 
             fetchUser();
-        } else {
-            console.log("Modal closed or no userId provided");
         }
     }, [open, userId]);
 
@@ -82,21 +76,46 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
     };
 
     const handleSubmit = async () => {
+        // Validate required fields
+        if (!formData.name || !formData.email || !formData.role) {
+            toast.error("Please fill in all required fields");
+            return;
+        }
+
+        // Check if password is required (only for non-student roles)
+        if (formData.role !== "student" && !formData.password) {
+            toast.error("Password is required for this role");
+            return;
+        }
+
+        setIsSubmitting(true);
         try {
-            await UserService.updateUser(userId, formData);
-            onUserUpdated(userId, formData);
+            // Only include password if it's provided
+            const updateData = { ...formData };
+            if (!updateData.password) {
+                delete updateData.password;
+            }
+
+            await UserService.updateUser(userId, updateData);
+            onUserUpdated(userId, updateData);
+            toast.success("User updated successfully!");
             onClose();
         } catch (error) {
             console.error("Failed to update user:", error);
+            toast.error(error.response?.data?.message || "Failed to update user. Please try again.");
+        } finally {
+            setIsSubmitting(false);
         }
     };
+
+    const isStudent = formData.role === "student";
 
     return (
         <Dialog open={open} handler={onClose} size="md">
             <DialogHeader>Edit User</DialogHeader>
             <DialogBody divider>
                 {loading ? (
-                    <p className="text-gray-500">Loading...</p>
+                    <p className="text-gray-500 text-center py-4">Loading user data...</p>
                 ) : (
                     <div className="flex flex-col gap-4">
                         <Input
@@ -104,20 +123,37 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
+                            required
                         />
                         <Input
                             label="Email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
+                            required
                         />
-                        <Input
-                            label="Password"
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                        />
+
+                        <Select
+                            label="Role"
+                            value={formData.role}
+                            onChange={(val) => handleSelectChange("role", val)}
+                            required
+                        >
+                            <Option value="student">Student</Option>
+                            <Option value="admin">Admin</Option>
+                        </Select>
+
+                        {/* Password field - hidden for students */}
+                        {!isStudent && (
+                            <Input
+                                label="Password (leave blank to keep current)"
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                            />
+                        )}
+
                         <Input
                             label="Company"
                             name="company"
@@ -137,15 +173,6 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
                             value={formData.year_of_experience}
                             onChange={handleChange}
                         />
-
-                        <Select
-                            label="Role"
-                            value={formData.role}
-                            onChange={(val) => handleSelectChange("role", val)}
-                        >
-                            <Option value="student">Student</Option>
-                            <Option value="admin">Admin</Option>
-                        </Select>
 
                         <Select
                             label="Gender"
@@ -171,22 +198,33 @@ const EditUserModal = ({ open, onClose, userId, onUserUpdated }) => {
                             <Option value="data_encoder">Data Encoder</Option>
                             <Option value="supervisor">Supervisor</Option>
                         </Select>
-                         <Select
+
+                        <Select
                             label="Exam Source"
                             value={formData.exam_source}
                             onChange={(val) => handleSelectChange("exam_source", val)}
                         >
+                            <Option value="">None</Option>
                             <Option value="EAII">EAII</Option>
                         </Select>
                     </div>
                 )}
             </DialogBody>
             <DialogFooter>
-                <Button variant="text" color="red" onClick={onClose}>
+                <Button 
+                    variant="text" 
+                    color="red" 
+                    onClick={onClose}
+                    disabled={isSubmitting}
+                >
                     Cancel
                 </Button>
-                <Button color="green" onClick={handleSubmit}>
-                    Save Changes
+                <Button 
+                    color="green" 
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || loading}
+                >
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
                 </Button>
             </DialogFooter>
         </Dialog>

@@ -118,12 +118,17 @@ export default function CreateQuestionModal({ open, onClose, onCreated }) {
                             <Option value="supervisor">Supervisor</Option>
                         </Select>
                     </div>
-                     <div className="flex-1">
-                        <Typography variant="small" className="mb-1 font-medium">Exam Source</Typography>
-                        <Select value={exam_source} onChange={(val) => setExamSource(val)}>
-                          <Option value="EAII">EAII</Option>
-                        </Select>
-                    </div>
+                    <div className="flex-1">
+    <Typography variant="small" className="mb-1 font-medium">Exam Source</Typography>
+    <Select 
+        value={exam_source} 
+        onChange={(val) => setExamSource(val || "")}
+    >
+        <Option value="">None</Option>
+        <Option value="EAII">EAII</Option>
+        {/* Add more options as needed */}
+    </Select>
+</div>
                 </div>
 
                 <div>

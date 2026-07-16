@@ -711,54 +711,80 @@ export function Questions() {
             </div>
 
             {/* Right Panel - Timer and Question Navigator */}
-            <div className="w-72 h-[680px] bg-white rounded-xl shadow-lg flex flex-col p-4">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white shadow-md mb-4">
-                <p className="text-sm font-light flex items-center justify-center gap-1 mb-1">⏳ Time Remaining</p>
-                <div className="flex justify-center items-center text-2xl font-bold tracking-tight">
-                  {formatTime(countDownTimer)}
-                </div>
-              </div>
 
-              <div className="border-t border-gray-200 my-4"></div>
+{/* Right Panel - Timer and Question Navigator */}
+<div className="w-72 h-[680px] bg-white rounded-xl shadow-lg flex flex-col p-4">
+  <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-4 text-white shadow-md mb-4">
+    <p className="text-sm font-light flex items-center justify-center gap-1 mb-1">⏳ Time Remaining</p>
+    <div className="flex justify-center items-center text-2xl font-bold tracking-tight">
+      {formatTime(countDownTimer)}
+    </div>
+  </div>
 
-              <div className="flex-1 overflow-y-auto">
-                <div className="grid grid-cols-5 gap-3">
-                  {questionsArray.map((q, index) => {
-                    const questionNumber = index + 1;
-                    const isCurrent = currentQuestion === questionNumber;
-                    const isAnswered = !!answersRef.current[q.exam_questionID];
-                    
-                    let baseClasses = "h-10 w-10 flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border";
-                    let statusClass = "";
+  <div className="border-t border-gray-200 my-4"></div>
 
-                    if (isCurrent) {
-                      statusClass = "border-blue-500 bg-blue-500 text-white";
-                    } else if (isAnswered) {
-                      statusClass = "border-green-500 bg-green-500 text-white";
-                    } else {
-                      statusClass = "border-gray-300 bg-gray-200 text-gray-700 hover:bg-gray-300";
-                    }
+  <div className="flex-1 overflow-y-auto">
+    <div className="grid grid-cols-5 gap-3">
+      {questionsArray.map((q, index) => {
+        const questionNumber = index + 1;
+        const isCurrent = currentQuestion === questionNumber;
+        const isAnswered = !!answersRef.current[q.exam_questionID];
+        
+        let baseClasses = "h-10 w-10 flex items-center justify-center rounded-md text-sm font-semibold transition-all duration-200 border relative";
+        let statusClass = "";
 
-                    return (
-                      <button
-                        key={q.exam_questionID || index}
-                        onClick={() => handleQuestionNavigation(questionNumber)}
-                        className={`${baseClasses} ${statusClass}`}
-                      >
-                        {questionNumber}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>Answered: {Object.keys(answersRef.current).length}</span>
-                  <span>Total: {questionsArray.length}</span>
-                </div>
-              </div>
-            </div>
+        if (isCurrent) {
+          // Current question - show blue regardless of answered status
+          statusClass = "border-blue-500 bg-blue-500 text-white";
+        } else if (isAnswered) {
+          // Answered but not current - show green
+          statusClass = "border-green-500 bg-green-500 text-white";
+        } else {
+          // Unanswered and not current - show gray
+          statusClass = "border-gray-300 bg-gray-200 text-gray-700 hover:bg-gray-300";
+        }
+
+        return (
+          <button
+            key={q.exam_questionID || index}
+            onClick={() => handleQuestionNavigation(questionNumber)}
+            className={`${baseClasses} ${statusClass}`}
+            title={isAnswered ? "Answered" : "Unanswered"}
+          >
+            {questionNumber}
+            {/* Show a small indicator for unanswered questions */}
+            {!isAnswered && !isCurrent && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+  
+  <div className="mt-4 pt-4 border-t border-gray-200">
+    <div className="flex justify-between text-xs text-gray-500">
+      <span>Answered: {Object.keys(answersRef.current).length}</span>
+      <span>Total: {questionsArray.length}</span>
+    </div>
+    {/* Add legend for clarity */}
+    <div className="flex justify-center gap-4 mt-2 text-xs">
+      <div className="flex items-center gap-1">
+        <div className="w-3 h-3 bg-blue-500 rounded"></div>
+        <span>Current</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <div className="w-3 h-3 bg-green-500 rounded"></div>
+        <span>Answered</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <div className="w-3 h-3 bg-gray-200 rounded border border-gray-300"></div>
+        <span>Unanswered</span>
+      </div>
+    </div>
+  </div>
+</div>
+
           </div>
         )}
       </div>
