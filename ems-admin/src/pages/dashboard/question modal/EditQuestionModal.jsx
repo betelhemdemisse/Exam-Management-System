@@ -17,6 +17,7 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
     const [loading, setLoading] = useState(false);
     const [questionText, setQuestionText] = useState("");
     const [category, setCategory] = useState("");
+    const [exam_source, setExamSource] = useState(""); // ADD THIS
     const [difficulty, setDifficulty] = useState("Easy");
     const [questionType, setQuestionType] = useState("data_encoder");
     const [choices, setChoices] = useState([]);
@@ -28,9 +29,9 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
 
             QuestionService.getQuestionById(questionId)
                 .then((data) => {
-
                     setQuestionText(data.question_text);
                     setCategory(data.category || "");
+                    setExamSource(data.exam_source || ""); // ADD THIS
                     setDifficulty(data.difficulty || "Easy");
                     setQuestionType(data.question_type || "data_encoder");
 
@@ -40,7 +41,6 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
                         choice_text: c.choice_text,
                         isCorrect: correctLabels.includes(c.label)
                     })) || [];
-
 
                     setChoices(formattedChoices);
                 })
@@ -52,7 +52,6 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
                 });
         }
     }, [open, questionId]);
-
 
     const addChoice = () => {
         const nextLabel = String.fromCharCode(65 + choices.length);
@@ -86,6 +85,7 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
                 question_text: questionText,
                 category,
                 difficulty,
+                exam_source, // ADD THIS
                 question_type: questionType,
                 choices: choices.map((c) => ({
                     label: c.label,
@@ -136,6 +136,16 @@ export default function EditQuestionModal({ open, onClose, questionId, onUpdated
                                 <Select value={questionType} onChange={(val) => setQuestionType(val)}>
                                     <Option value="data_encoder">Data Encoder</Option>
                                     <Option value="supervisor">Supervisor</Option>
+                                </Select>
+                            </div>
+                            <div className="flex-1">
+                                <Typography variant="small" className="mb-1 font-medium">Exam Source</Typography>
+                                <Select 
+                                    value={exam_source} 
+                                    onChange={(val) => setExamSource(val || "")}
+                                >
+                                    <Option value="">None</Option>
+                                    <Option value="EAII">EAII</Option>
                                 </Select>
                             </div>
                         </div>
