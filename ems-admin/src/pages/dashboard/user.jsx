@@ -493,7 +493,6 @@ export function User() {
               {filteredUsers
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((user, index) => {
-                  // Check if it's seed data just for display purposes
                   const isSeed = (user.userID || user.id)?.startsWith('00000000-0000-0000-0000-');
                   return (
                     <tr key={user.userID || user.id || index} className="hover:bg-blue-gray-50 transition-colors">

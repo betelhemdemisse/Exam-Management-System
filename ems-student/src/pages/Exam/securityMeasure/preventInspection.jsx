@@ -10,66 +10,82 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
   const isAwayRef = useRef(false);
   const violationCountRef = useRef(0);
   const lastViolationTimeRef = useRef(0);
+  const isHandlingBrowserUI = useRef(false);
+  const focusLostTimeRef = useRef(0);
+  const isUserInteractingRef = useRef(false);
 
-  // Auto-submit function - FORCEFUL version
+  // Auto-submit function
   const handleAutoSubmit = async () => {
-    // Prevent multiple submissions
-    if (isSubmittingRef.current) {
-      console.log('⚠️ Already submitting, skipping...');
-      return;
-    }
-    
+    if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
     console.log('🚨 FORCE AUTO-SUBMIT triggered!');
     
     try {
-      // Clear all timers first
       if (countdownRef.current) {
         clearInterval(countdownRef.current);
         countdownRef.current = null;
       }
       
-      // Call the parent's auto-submit function
       if (onAutoSubmit) {
-        console.log('📤 Calling onAutoSubmit...');
         await onAutoSubmit();
-        console.log('✅ onAutoSubmit completed');
       }
       
-      // Force navigation to sign-in
-      console.log('🚪 Navigating to sign-in...');
       navigate('/sign-in');
-      
     } catch (error) {
       console.error('❌ Auto-submit failed:', error);
-      // Even if submit fails, still navigate out
       navigate('/sign-in');
     } finally {
       isSubmittingRef.current = false;
     }
   };
 
+  // Check if focus loss is due to browser UI
+  const isBrowserUIInteraction = () => {
+    const now = Date.now();
+    const timeSinceFocusLost = now - focusLostTimeRef.current;
+    
+    // Browser UI interactions typically happen very quickly (< 300ms)
+    // and don't involve mouse movement or keyboard input
+    if (timeSinceFocusLost < 300 && !isUserInteractingRef.current) {
+      return true;
+    }
+    
+    return false;
+  };
+
   // Start countdown before auto-submit
   const startCountdown = () => {
     if (isSubmittingRef.current) return;
-    if (showWarningModal) return; // Don't show multiple modals
+    if (showWarningModal) return;
     
-    // Track violations to prevent false positives
+    // Check if this is a browser UI interaction
+    if (isBrowserUIInteraction()) {
+      console.log('🛡️ Browser UI interaction detected - ignoring');
+      isHandlingBrowserUI.current = true;
+      
+      // Reset after a short delay
+      setTimeout(() => {
+        isHandlingBrowserUI.current = false;
+        isAwayRef.current = false;
+      }, 500);
+      
+      return;
+    }
+    
     const now = Date.now();
     const timeSinceLastViolation = now - lastViolationTimeRef.current;
     
-    // If violations happen too frequently (within 2 seconds), it's likely a false positive
-    if (timeSinceLastViolation < 2000) {
+    // Increase threshold to 3 seconds to reduce false positives
+    if (timeSinceLastViolation < 3000) {
       violationCountRef.current++;
       console.log(`⚠️ Frequent violations detected: ${violationCountRef.current}`);
       
-      // Allow 3 false positives before actually triggering
-      if (violationCountRef.current < 3) {
+      // Allow 4 false positives before actually triggering
+      if (violationCountRef.current < 4) {
         lastViolationTimeRef.current = now;
         return;
       }
     } else {
-      // Reset count if enough time has passed
       violationCountRef.current = 0;
     }
     
@@ -87,7 +103,6 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
         if (prev <= 1) {
           clearInterval(countdownRef.current);
           countdownRef.current = null;
-          // FORCE auto-submit when countdown reaches 0
           handleAutoSubmit();
           return 0;
         }
@@ -105,14 +120,48 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
       countdownRef.current = null;
     }
     isAwayRef.current = false;
+    isHandlingBrowserUI.current = false;
   };
+
+  // Detect actual navigation away from page
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      // Only trigger if user is actually navigating away
+      if (!isHandlingBrowserUI.current) {
+        console.log('🚪 Page navigation detected');
+        handleAutoSubmit();
+      }
+    };
+
+    const handlePageHide = (e) => {
+      if (!isHandlingBrowserUI.current) {
+        console.log('📄 Page hide detected');
+        handleAutoSubmit();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, []);
 
   // METHOD 1: TAB SWITCH DETECTION
   useEffect(() => {
     const handleVisibilityChange = () => {
+      // Ignore if we're handling browser UI
+      if (isHandlingBrowserUI.current) {
+        console.log('🛡️ Ignoring visibility change due to browser UI');
+        return;
+      }
+
       if (document.visibilityState === 'hidden') {
         console.log('⚠️ Tab switched away');
         isAwayRef.current = true;
+        focusLostTimeRef.current = Date.now();
         startCountdown();
       } else {
         console.log('✅ Tab is back');
@@ -129,12 +178,21 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
     };
   }, []);
 
-  // METHOD 2: WINDOW BLUR - Catches Alt+Tab
+  // METHOD 2: WINDOW BLUR - With browser UI detection
   useEffect(() => {
     const handleBlur = () => {
-      console.log('⚠️ Window lost focus (Alt+Tab or Start menu)');
-      isAwayRef.current = true;
-      startCountdown();
+      // Record the time when focus was lost
+      focusLostTimeRef.current = Date.now();
+      
+      // Check if the blur is due to browser UI (notification, credential save, etc.)
+      // Most browser UI interactions happen when clicking on browser chrome
+      setTimeout(() => {
+        if (!document.hasFocus() && !isHandlingBrowserUI.current) {
+          console.log('⚠️ Window lost focus (Alt+Tab or browser UI)');
+          isAwayRef.current = true;
+          startCountdown();
+        }
+      }, 100);
     };
 
     const handleFocus = () => {
@@ -142,20 +200,44 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
       if (isAwayRef.current) {
         resetWarning();
       }
+      isUserInteractingRef.current = true;
+      
+      // Reset user interaction flag after a delay
+      setTimeout(() => {
+        isUserInteractingRef.current = false;
+      }, 1000);
+    };
+
+    // Track user interaction to distinguish from browser UI
+    const handleUserInteraction = () => {
+      isUserInteractingRef.current = true;
+      // Reset after a short delay
+      setTimeout(() => {
+        isUserInteractingRef.current = false;
+      }, 500);
     };
 
     window.addEventListener('blur', handleBlur);
     window.addEventListener('focus', handleFocus);
+    window.addEventListener('mousemove', handleUserInteraction);
+    window.addEventListener('keydown', handleUserInteraction);
+    window.addEventListener('click', handleUserInteraction);
     
     return () => {
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('mousemove', handleUserInteraction);
+      window.removeEventListener('keydown', handleUserInteraction);
+      window.removeEventListener('click', handleUserInteraction);
     };
   }, []);
 
-  // METHOD 3: CONTINUOUS FOCUS CHECK
+  // METHOD 3: CONTINUOUS FOCUS CHECK - With browser UI detection
   useEffect(() => {
     const checkFocus = () => {
+      // Skip if we're handling browser UI
+      if (isHandlingBrowserUI.current) return;
+      
       if (!document.hasFocus() && !showWarningModal) {
         console.log('⚠️ Document lost focus (continuous check)');
         isAwayRef.current = true;
@@ -165,40 +247,17 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
       }
     };
 
-    const interval = setInterval(checkFocus, 1000);
+    const interval = setInterval(checkFocus, 2000); // Increased to 2 seconds
 
     return () => {
       clearInterval(interval);
     };
   }, [showWarningModal]);
 
-  // METHOD 4: MOUSE LEAVE DETECTION - DISABLED for protected browser compatibility
-  // This causes too many false positives in restricted environments
-  // useEffect(() => {
-  //   const handleMouseLeave = (e) => {
-  //     if (e.clientY < 0 || e.clientX < 0 || 
-  //         e.clientX > window.innerWidth || e.clientY > window.innerHeight) {
-  //       console.log('⚠️ Mouse left the window');
-  //       startCountdown();
-  //     }
-  //   };
-
-  //   document.addEventListener('mouseleave', handleMouseLeave);
-  //   return () => document.removeEventListener('mouseleave', handleMouseLeave);
-  // }, []);
-
-  // METHOD 5: DEV TOOLS & KEYBOARD SHORTCUTS
+  // METHOD 4: KEYBOARD SHORTCUTS (keep only essential ones)
   useEffect(() => {
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-      console.log('🚫 Right-click blocked');
-      handleAutoSubmit();
-    };
-
-    const handleSelectStart = (e) => e.preventDefault();
-
     const handleKeyDown = (e) => {
-      // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C, Ctrl+U
+      // Only block critical shortcuts that are clearly intentional
       if ((e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) ||
           (e.ctrlKey && e.key === 'u') || 
           e.key === 'F12') {
@@ -209,51 +268,33 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
         return false;
       }
 
-      // Block Ctrl+S, Ctrl+P
+      // Block Ctrl+S, Ctrl+P only (not Ctrl+other)
       if ((e.ctrlKey && ['s', 'p'].includes(e.key.toLowerCase()))) {
         e.preventDefault();
         return false;
       }
     };
 
-    // Detect DevTools by window size - DISABLED for protected browser compatibility
-    // Protected browsers may have different window dimensions, causing false positives
-    const checkDevTools = () => {
-      // Disabled - causes false positives in protected browsers
-      // const threshold = 160;
-      // if ((window.outerWidth - window.innerWidth > threshold) || 
-      //     (window.outerHeight - window.innerHeight > threshold)) {
-      //   console.log('🔧 DevTools detected by window size!');
-      //   handleAutoSubmit();
-      // }
-    };
-
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('selectstart', handleSelectStart);
     document.addEventListener('keydown', handleKeyDown);
-    
-    const devToolsCheckInterval = setInterval(checkDevTools, 500);
-
-    // Prevent text selection
-    const style = document.createElement('style');
-    style.innerHTML = '* { user-select: none !important; }';
-    document.head.appendChild(style);
 
     return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('selectstart', handleSelectStart);
       document.removeEventListener('keydown', handleKeyDown);
-      clearInterval(devToolsCheckInterval);
-      document.head.removeChild(style);
     };
   }, []);
 
-  // METHOD 6: FULLSCREEN ENFORCEMENT
+  // METHOD 5: FULLSCREEN ENFORCEMENT - With browser UI detection
   useEffect(() => {
     const handleFullscreenChange = () => {
+      if (isHandlingBrowserUI.current) return;
+      
       if (!document.fullscreenElement) {
         console.log('⚠️ Fullscreen exited');
-        startCountdown();
+        // Check if this is browser UI (e.g., notification, credential save)
+        setTimeout(() => {
+          if (!document.fullscreenElement && !isHandlingBrowserUI.current) {
+            startCountdown();
+          }
+        }, 300);
       }
     };
 
@@ -269,8 +310,8 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
     resetWarning();
     window.focus();
     
-    // Re-enter fullscreen
-    if (!document.fullscreenElement) {
+    // Don't force fullscreen if browser is showing UI
+    if (!document.fullscreenElement && !isHandlingBrowserUI.current) {
       document.documentElement.requestFullscreen().catch(() => {});
     }
   };
@@ -280,7 +321,7 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
     handleAutoSubmit();
   };
 
-  // Warning Modal
+  // Warning Modal (keep the same styling)
   const WarningModal = () => (
     <div style={{
       position: 'fixed',
