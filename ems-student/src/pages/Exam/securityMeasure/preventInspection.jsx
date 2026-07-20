@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
   const navigate = useNavigate();
   const [showWarningModal, setShowWarningModal] = useState(false);
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(10);
   const countdownRef = useRef(null);
   const isSubmittingRef = useRef(false);
   const isAwayRef = useRef(false);
@@ -93,7 +93,7 @@ const SecureEnvironment = ({ children, examId, onAutoSubmit }) => {
     
     console.log('⏰ Starting countdown...');
     setShowWarningModal(true);
-    setCountdown(3);
+    setCountdown(10);
     
     if (countdownRef.current) clearInterval(countdownRef.current);
     
